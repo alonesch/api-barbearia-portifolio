@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarbeariaPortfolio.API", "BarbeariaPortfolio.API.csproj", "{1FF9B00B-C881-B66C-2D20-5CA257112B1D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Controllers", "Controllers", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		AgendamentoController.cs = AgendamentoController.cs
+		BarbeiroController.cs = BarbeiroController.cs
+		ClienteController.cs = ClienteController.cs
+		LoginController.cs = LoginController.cs
+		ServicoController.cs = ServicoController.cs
+		UsuarioController.cs = UsuarioController.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DTOs", "DTOs", "{032CDE19-07D2-4238-9542-279547B40A09}"
+	ProjectSection(SolutionItems) = preProject
+		AgendamentoDTO.cs = AgendamentoDTO.cs
+		ServicoDTO.cs = ServicoDTO.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Auth", "Auth", "{0258FC0E-7E2F-4E89-84E4-3544A0ADBF1B}"
+	ProjectSection(SolutionItems) = preProject
+		JwtOptions.cs = JwtOptions.cs
+		TokenService.cs = TokenService.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{380A7511-A354-6D7A-0CC0-8FA1F1BA7B6C}"
+	ProjectSection(SolutionItems) = preProject
+		appsettings.Production.json = appsettings.Production.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FF9B00B-C881-B66C-2D20-5CA257112B1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FF9B00B-C881-B66C-2D20-5CA257112B1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FF9B00B-C881-B66C-2D20-5CA257112B1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FF9B00B-C881-B66C-2D20-5CA257112B1D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {72B5819E-AD7C-4C59-B22E-7ABE91A15D07}
+	EndGlobalSection
+EndGlobal
