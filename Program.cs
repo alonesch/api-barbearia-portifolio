@@ -1,4 +1,4 @@
-﻿using BarbeariaPortifolio.API.Auth;
+using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -9,17 +9,28 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 🔹 JWT e Serviços
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
-// 🔹 Configuração do banco MySQL (Railway)
-var connectionString = "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
+// ✅ Lê a Connection String primeiro da variável de ambiente (Railway), senão usa a local
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("⚠️ Nenhuma connection string encontrada nas variáveis de ambiente.");
+    Console.WriteLine("Usando fallback local.");
+    connectionString = "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
+    Console.ResetColor();
+}
+
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// 🔹 Carrega e valida JWT Key
+// 🔹 JWT Key
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
 
@@ -34,20 +45,10 @@ if (string.IsNullOrWhiteSpace(keyValue))
 
 Console.ForegroundColor = ConsoleColor.Green;
 Console.WriteLine($"✅ Ambiente atual: {builder.Environment.EnvironmentName}");
-Console.WriteLine($"✅ JWT Key carregada com sucesso ({keyValue.Length} caracteres)");
+Console.WriteLine($"✅ JWT Key carregada ({keyValue.Length} caracteres)");
 Console.ResetColor();
 
-// 🔹 Valida Connection String (aceita de variável de ambiente ou appsettings)
-if (string.IsNullOrWhiteSpace(connectionString))
-{
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("❌ ERRO: Nenhuma Connection String foi encontrada!");
-    Console.WriteLine("   Defina a variável de ambiente ConnectionStrings__DefaultConnection ou configure no appsettings.");
-    Console.ResetColor();
-    Environment.Exit(1);
-}
-
-// 🔹 Exibe confirmação (sem mostrar a senha)
+// 🔹 Mostra Connection String (sem a senha)
 var safeConn = connectionString.Contains("Password=")
     ? connectionString.Split("Password=")[0] + "Password=********;"
     : connectionString;
@@ -90,11 +91,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// ✅ Aplica Migrations automaticamente
 using (var scope = app.Services.CreateScope())
 {
     try
     {
-        var db = scope.ServiceProvider.GetRequiredService<BarbeariaPortifolio.API.Data.DataContext>();
+        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
         db.Database.Migrate();
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("✅ Banco de dados atualizado com sucesso!");
@@ -107,6 +109,5 @@ using (var scope = app.Services.CreateScope())
         Console.ResetColor();
     }
 }
-
 
 app.Run();
