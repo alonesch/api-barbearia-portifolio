@@ -9,11 +9,13 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 🔹 Configurações e serviços
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
+// 🔹 Banco de dados (MySQL - Railway)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -27,30 +29,19 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// 🔹 JWT
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
 
 if (string.IsNullOrWhiteSpace(keyValue))
 {
     Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("❌ ERRO: Nenhuma chave JWT foi encontrada!");
-    Console.WriteLine("   Defina a variável de ambiente Jwt__Key antes de iniciar o servidor.");
-    Console.ResetColor();
+    Console.WriteLine("❌ Nenhuma chave JWT foi encontrada!");
     Environment.Exit(1);
 }
 
 Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine($"✅ Ambiente atual: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"✅ JWT Key carregada ({keyValue.Length} caracteres)");
-Console.ResetColor();
-
-var safeConn = connectionString.Contains("Password=")
-    ? connectionString.Split("Password=")[0] + "Password=********;"
-    : connectionString;
-
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine("✅ Connection String carregada com sucesso:");
-Console.WriteLine($"   {safeConn}");
 Console.ResetColor();
 
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
@@ -73,24 +64,26 @@ builder.Services
             ValidateLifetime = true,
             ValidIssuer = jwt.Issuer,
             ValidAudience = jwt.Audience,
-            IssuerSigningKey = key,
-            ClockSkew = TimeSpan.FromMinutes(1)
+            IssuerSigningKey = key
         };
     });
 
-// ✅ Libera CORS para o domínio da Vercel
+// ✅ CORS liberando o domínio da Vercel e testes locais
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("https://portifolio-gabriel-dun.vercel.app")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+        policy.WithOrigins(
+            "https://portifolio-gabriel-dun.vercel.app",
+            "http://localhost:5173"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 var app = builder.Build();
 
-// ✅ Aplica migrations
+// ✅ Aplica Migrations
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -109,11 +102,18 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// ✅ Ordem correta de middlewares
+// 🔧 Pipeline — ORDEM IMPORTA
 app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// 🔹 Log pra confirmar CORS ativo
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine("🌐 CORS habilitado para:");
+Console.WriteLine("   → https://portifolio-gabriel-dun.vercel.app");
+Console.WriteLine("   → http://localhost:5173");
+Console.ResetColor();
 
 app.Run("http://0.0.0.0:8080");
