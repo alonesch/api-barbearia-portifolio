@@ -106,9 +106,12 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run("http://0.0.0.0:8080");
+
