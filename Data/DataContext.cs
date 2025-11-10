@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using BarbeariaPortifolio.API.Models;
+using System;
 
 namespace BarbeariaPortifolio.API.Data
 {
@@ -22,11 +23,13 @@ namespace BarbeariaPortifolio.API.Data
 
             modelBuilder.Entity<Cliente>()
                 .Property(c => c.DataCadastro)
-                .HasDefaultValueSql("GETDATE()");
+                .ValueGeneratedOnAdd()
+                .HasDefaultValue(DateTime.UtcNow);
 
             modelBuilder.Entity<Agendamento>()
                 .Property(a => a.DataRegistro)
-                .HasDefaultValueSql("GETDATE()");
+                .ValueGeneratedOnAdd()
+                .HasDefaultValue(DateTime.UtcNow);
 
             modelBuilder.Entity<Agendamento>()
                 .Property(a => a.Status)
