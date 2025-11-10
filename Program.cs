@@ -15,14 +15,13 @@ builder.Services.AddSingleton<TokenService>();
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
-// ✅ Lê a Connection String primeiro da variável de ambiente (Railway), senão usa a local
+// 🔹 Connection String (Railway ou fallback local)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("⚠️ Nenhuma connection string encontrada nas variáveis de ambiente.");
-    Console.WriteLine("Usando fallback local.");
+    Console.WriteLine("⚠️ Nenhuma connection string encontrada nas variáveis de ambiente. Usando fallback local.");
     connectionString = "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
     Console.ResetColor();
 }
@@ -48,7 +47,7 @@ Console.WriteLine($"✅ Ambiente atual: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"✅ JWT Key carregada ({keyValue.Length} caracteres)");
 Console.ResetColor();
 
-// 🔹 Mostra Connection String (sem a senha)
+// 🔹 Exibe Connection String (sem senha)
 var safeConn = connectionString.Contains("Password=")
     ? connectionString.Split("Password=")[0] + "Password=********;"
     : connectionString;
@@ -84,14 +83,18 @@ builder.Services
         };
     });
 
+// ✅ CORS — libera apenas o domínio da Vercel
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.WithOrigins("https://barbearia-front-portifolio.vercel.app") // <-- domínio da Vercel
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-
-// ✅ Aplica Migrations automaticamente
+// ✅ Aplica migrations automáticas no MySQL
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -109,5 +112,12 @@ using (var scope = app.Services.CreateScope())
         Console.ResetColor();
     }
 }
+
+// 🔧 Middlewares
+app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
