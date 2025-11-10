@@ -83,18 +83,18 @@ builder.Services
         };
     });
 
-// ✅ CORS — libera apenas o domínio da Vercel
+// ✅ CORS — libera apenas o domínio real da Vercel
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("https://barbearia-front-portifolio.vercel.app") // <-- domínio da Vercel
+        policy.WithOrigins("https://portifolio-gabriel-dun.vercel.app") // 🔥 domínio correto da Vercel
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
-// ✅ Aplica migrations automáticas no MySQL
+// ✅ Aplica migrations automáticas no MySQL (Railway)
 using (var scope = app.Services.CreateScope())
 {
     try
