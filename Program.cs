@@ -78,16 +78,19 @@ builder.Services
         };
     });
 
+// ✅ Libera CORS para o domínio da Vercel
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
         policy.WithOrigins("https://portifolio-gabriel-dun.vercel.app")
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              .AllowCredentials());
 });
 
 var app = builder.Build();
 
+// ✅ Aplica migrations
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -106,12 +109,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// ✅ Ordem correta de middlewares
 app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run("http://0.0.0.0:8080");
-
