@@ -97,5 +97,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 🚀 Escuta HTTP genérico (sem redirecionamento forçado)
-app.Run("http://0.0.0.0:8080");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");
+
