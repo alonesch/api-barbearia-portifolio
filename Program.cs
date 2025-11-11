@@ -141,7 +141,6 @@ app.MapControllers();
 // ✅ Necessário no Railway — evita "Invalid Hostname"
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Urls.Add($"http://0.0.0.0:{port}");
-app.Urls.Add($"https://0.0.0.0:{port}");
 
 Console.ForegroundColor = ConsoleColor.Yellow;
 Console.WriteLine($"🚀 Aplicação escutando em: http://0.0.0.0:{port}");
