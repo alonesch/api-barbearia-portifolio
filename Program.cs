@@ -101,9 +101,17 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-var app = builder.Build();
+// ===================================================
+// ✅ Configuração necessária para o Railway (antes do Build)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseKestrel(options =>
+{
+    options.ListenAnyIP(int.Parse(port));
+});
 
 // ===================================================
+var app = builder.Build();
+
 // ✅ Aplica migrations automáticas no MySQL (Railway)
 using (var scope = app.Services.CreateScope())
 {
@@ -139,13 +147,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 // ===================================================
-// ✅ Configuração necessária para o Railway
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseKestrel(options =>
-{
-    options.ListenAnyIP(int.Parse(port));
-});
-
+// ✅ Logs de inicialização
 Console.ForegroundColor = ConsoleColor.Yellow;
 Console.WriteLine($"🚀 Aplicação escutando em: 0.0.0.0:{port}");
 Console.ResetColor();
