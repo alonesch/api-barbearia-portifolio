@@ -9,7 +9,8 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Serviçps da aplicação (mapeamento via swagger)
+// ===================================================
+// 🔹 Serviços principais da aplicação
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -18,8 +19,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
 
+// ===================================================
 // 🔹 Connection String (Railway ou fallback local)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -34,6 +35,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// ===================================================
 // 🔹 JWT Key
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
@@ -52,7 +54,7 @@ Console.WriteLine($"✅ Ambiente atual: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"✅ JWT Key carregada ({keyValue.Length} caracteres)");
 Console.ResetColor();
 
-// 🔹 Exibe Connection String (sem senha)
+// Exibe Connection String mascarada
 var safeConn = connectionString.Contains("Password=")
     ? connectionString.Split("Password=")[0] + "Password=********;"
     : connectionString;
@@ -62,6 +64,7 @@ Console.WriteLine("✅ Connection String carregada com sucesso:");
 Console.WriteLine($"   {safeConn}");
 Console.ResetColor();
 
+// ===================================================
 // 🔹 Configuração JWT
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
 
@@ -88,17 +91,19 @@ builder.Services
         };
     });
 
+// ===================================================
 // ✅ CORS — libera apenas o domínio real da Vercel
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("https://portifolio-gabriel-dun.vercel.app") // 🔥 domínio correto da Vercel
+        policy.WithOrigins("https://portifolio-gabriel-dun.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
+// ===================================================
 // ✅ Aplica migrations automáticas no MySQL (Railway)
 using (var scope = app.Services.CreateScope())
 {
@@ -118,21 +123,29 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 🔧 Middlewares
-
-if (app.Environment.IsDevelopment())
+// ===================================================
+// 🧩 Middlewares
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
+    c.RoutePrefix = "swagger"; // acessa em /swagger
+});
+
 app.UseHttpsRedirection();
-app.UseCors("Production");
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// ✅ Necessário no Railway — evita "Invalid Hostname"
+app.Urls.Add("http://0.0.0.0:" + Environment.GetEnvironmentVariable("PORT"));
+
+// ✅ Pós-deploy log
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine("🌐 Servidor iniciado com sucesso!");
+Console.WriteLine($"📄 Swagger: https://api-barbearia-portifolio-production.up.railway.app/swagger");
+Console.WriteLine($"🧩 JSON:   https://api-barbearia-portifolio-production.up.railway.app/swagger/v1/swagger.json");
+Console.ResetColor();
 
 app.Run();
