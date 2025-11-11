@@ -9,6 +9,11 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 🔹 Serviçps da aplicação (mapeamento via swagger)
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 // 🔹 JWT e Serviços
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
@@ -17,13 +22,13 @@ builder.Services.AddControllers();
 
 // 🔹 Connection String (Railway ou fallback local)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("⚠️ Nenhuma connection string encontrada nas variáveis de ambiente. Usando fallback Railway padrão.");
+    Console.WriteLine("⚠️ Nenhuma connection string encontrada nas variáveis de ambiente. Usando fallback local.");
+    connectionString = "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
     Console.ResetColor();
-
-    connectionString = "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=None;";
 }
 
 builder.Services.AddDbContext<DataContext>(options =>
@@ -43,10 +48,11 @@ if (string.IsNullOrWhiteSpace(keyValue))
 }
 
 Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine($"✅ Ambiente atual: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"✅ JWT Key carregada ({keyValue.Length} caracteres)");
 Console.ResetColor();
 
-// 🔹 Exibe Connection String (oculta senha)
+// 🔹 Exibe Connection String (sem senha)
 var safeConn = connectionString.Contains("Password=")
     ? connectionString.Split("Password=")[0] + "Password=********;"
     : connectionString;
@@ -67,51 +73,39 @@ builder.Services
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false;
+        options.RequireHttpsMetadata = true;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
             ValidIssuer = jwt.Issuer,
             ValidAudience = jwt.Audience,
-            IssuerSigningKey = key
+            IssuerSigningKey = key,
+            ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
 
-// ✅ CORS — permite apenas os domínios autorizados
+// ✅ CORS — libera apenas o domínio real da Vercel
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins(
-                "https://portifolio-gabriel-dun.vercel.app",
-                "http://localhost:5173")
+        policy.WithOrigins("https://portifolio-gabriel-dun.vercel.app") // 🔥 domínio correto da Vercel
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+              .AllowAnyMethod());
 });
-
-// ✅ Permitir hosts externos (corrige erro 400 no Railway)
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ListenAnyIP(int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080"));
-});
-builder.WebHost.UseUrls("http://0.0.0.0:*");
-builder.WebHost.UseSetting("AllowedHosts", "*");
-builder.WebHost.UseSetting(WebHostDefaults.DetailedErrorsKey, "true");
-builder.WebHost.CaptureStartupErrors(true);
 
 var app = builder.Build();
 
-// ✅ Aplica migrations automáticas
+// ✅ Aplica migrations automáticas no MySQL (Railway)
 using (var scope = app.Services.CreateScope())
 {
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<DataContext>();
         db.Database.Migrate();
-
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("✅ Banco de dados atualizado com sucesso!");
         Console.ResetColor();
@@ -119,22 +113,26 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"❌ Erro ao aplicar migrations: {ex.Message}");
+        Console.WriteLine($"❌ Erro ao atualizar o banco: {ex.Message}");
         Console.ResetColor();
     }
 }
 
-// 🔧 Pipeline
-app.UseRouting();
-app.UseCors("AllowFrontend");
+// 🔧 Middlewares
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+app.UseHttpsRedirection();
+app.UseCors("Production");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("🌐 CORS habilitado para:");
-Console.WriteLine("   → https://portifolio-gabriel-dun.vercel.app");
-Console.WriteLine("   → http://localhost:5173");
-Console.ResetColor();
 
 app.Run();
