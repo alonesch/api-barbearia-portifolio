@@ -138,15 +138,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// ✅ Necessário no Railway — evita "Invalid Hostname"
+// ===================================================
+// ✅ Configuração necessária para o Railway
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://0.0.0.0:{port}");
+builder.WebHost.UseKestrel(options =>
+{
+    options.ListenAnyIP(int.Parse(port));
+});
 
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine($"🚀 Aplicação escutando em: http://0.0.0.0:{port}");
+Console.WriteLine($"🚀 Aplicação escutando em: 0.0.0.0:{port}");
 Console.ResetColor();
 
-// ✅ Pós-deploy log
 Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine("🌐 Servidor iniciado com sucesso!");
 Console.WriteLine($"📄 Swagger: https://api-barbearia-portifolio-production.up.railway.app/swagger");
@@ -154,4 +157,3 @@ Console.WriteLine($"🧩 JSON:    https://api-barbearia-portifolio-production.up
 Console.ResetColor();
 
 app.Run();
-
