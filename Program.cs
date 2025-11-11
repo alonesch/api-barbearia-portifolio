@@ -76,7 +76,7 @@ builder.Services
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // 👈 Corrigido (Railway já faz HTTPS)
+        options.RequireHttpsMetadata = false; // ✅ Railway já fornece HTTPS
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -102,7 +102,7 @@ builder.Services.AddCors(options =>
 });
 
 // ===================================================
-// ✅ Configuração necessária para o Railway (antes do Build)
+// ✅ Configuração necessária para o Railway (ANTES do Build)
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -137,4 +137,26 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.Swagger
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
+    c.RoutePrefix = "swagger"; // acessa em /swagger
+});
+
+// ⚠️ NÃO usar UseHttpsRedirection() no Railway
+app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+// ===================================================
+// ✅ Logs de inicialização
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"🚀 Aplicação escutando em: 0.0.0.0:{port}");
+Console.ResetColor();
+
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine("🌐 Servidor iniciado com sucesso!");
+Console.WriteLine($"📄 Swagger: https://api-barbearia-portifolio-production.up.railway.app/swagger");
+Console.WriteLine($"🧩 JSON:    https://api-barbearia-portifolio-production.up.railway.app/swagger/v1/swagger.json");
+Console.ResetColor();
+
+app.Run();
