@@ -35,11 +35,17 @@ namespace BarbeariaPortifolio.API.Data
                 .Property(a => a.Status)
                 .HasDefaultValue(1);
 
-            modelBuilder.Entity<Barbeiro>()
-                .HasOne(b => b.Usuario)
-                .WithOne(u => u.Barbeiro)
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u =>  u.Barbeiro)
+                .WithOne(b => b.Usuario)
+                .HasForeignKey<Usuario>(u => u.BarbeiroId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Usuario>()
+                .HasOne(b =>  b.Barbeiro)
+                .WithOne(u => u.Usuario)
                 .HasForeignKey<Barbeiro>(b => b.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
