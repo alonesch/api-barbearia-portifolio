@@ -76,7 +76,7 @@ builder.Services
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = true;
+        options.RequireHttpsMetadata = false; // Railway já usa HTTPS externo
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -104,10 +104,13 @@ builder.Services.AddCors(options =>
 // ===================================================
 // ✅ Configuração necessária para o Railway (antes do Build)
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseKestrel(options =>
+builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    options.ListenAnyIP(int.Parse(port));
+    serverOptions.ListenAnyIP(int.Parse(port));
 });
+
+// ✅ Permite qualquer host (corrige HTTP 400)
+builder.WebHost.UseSetting("AllowedHosts", "*");
 
 // ===================================================
 var app = builder.Build();
@@ -140,7 +143,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger"; // acessa em /swagger
 });
 
-app.UseHttpsRedirection();
+// ⚠️ Removido UseHttpsRedirection (Railway já faz proxy HTTPS)
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
