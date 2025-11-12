@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
-namespace BarbeariaPortifolio.API.Models;
+using System.Collections.Generic;
+using BarbeariaPortifolio.API.Models;
 
 [Table("Cliente")]
 public class Cliente
 {
     [Key]
-    public int ID { get; set; }
+    public int Id { get; set; }
 
     [Column(TypeName = "varchar(150)")]
     [Required]
@@ -21,7 +21,7 @@ public class Cliente
     public string Telefone { get; set; } = string.Empty;
 
     [Column(TypeName = "datetime")]
-    public DateTime? DataCadastro { get; set; } = DateTime.Now;
+    public DateTime DataCadastro { get; set; }
 
-    public ICollection<Agendamento>? Agendamentos { get; set; }
+    public virtual ICollection<Agendamento>? Agendamentos { get; set; }
 }

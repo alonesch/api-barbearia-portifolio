@@ -1,74 +1,61 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using BarbeariaPortifolio.API.Data;
+﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.API.Models;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/[controller]")]
-public class ServicoController : ControllerBase
+
+namespace BarbeariaPortifolio.API.Controllers
 {
-	private readonly DataContext _context;
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ServicoController : ControllerBase
+    {
+        private readonly IServicoServico _servicoServico;
 
+        public ServicoController(IServicoServico servicoServico)
+        {
+            _servicoServico = servicoServico;
+        }
 
+        [HttpGet]
+        public async Task<IActionResult> Listar()
+        {
+            var servicos = await _servicoServico.ListarTodos();
+            return Ok(servicos);
+        }
 
-	public  ServicoController(DataContext context)
-	{
-		_context = context;
-	}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Buscar(int id)
+        {
+            var servico = await _servicoServico.BuscarPorId(id);
+            if (servico == null)
+               return NotFound("Serviço não encontrado.");
+            return Ok(servico);
+        }
 
-	[HttpGet]
-	public async Task<ActionResult<IEnumerable<Servico>>> GetServico()
-	{
-		var servico = await _context.Servicos.ToListAsync();
-		return Ok(servico);
-	}
+        [HttpPost]
+        public async Task<IActionResult> Cadastrar (Servico servico)
+        {
+            var novo = await _servicoServico.Cadastrar(servico);
+            return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
+        }
 
-	
-	[HttpGet ("{id}")]
-	public async Task<ActionResult<Servico>> GetServico(int id)
-	{
-		var servico = await _context.Servicos.FindAsync(id);
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Atualizar (int id, Servico servico)
+        {
+            var atualizado = await _servicoServico.Atualizar(id, servico);
+            if (!atualizado)
+                return BadRequest("Erro ao atualizar o serviço.");
+            return Ok("Servico atualizado com sucesso.");
+        }
 
-		if (servico == null)
-			return NotFound("Serviço não encontrado.");
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Excluir (int id)
+        {
+            var excluido = await _servicoServico.Excluir(id);
+            if (!excluido)
+                return NotFound("Serviço não encontrado");
+            return Ok("Serviço deletado com sucesso.");
+        }
 
-
-		return Ok(servico);
-	}
-	
-	
-	[HttpPost]
-	public async Task<ActionResult<Servico>> PostServico(Servico servico)
-	{
-		_context.Servicos.Add(servico);
-		await _context.SaveChangesAsync();
-		return CreatedAtAction(nameof(GetServico), new { id = servico.ID }, servico);
-	}
-	
-	
-	[HttpPut("{id}")]
-	public async Task<ActionResult<Servico>> PutServico(int id, Servico servico)
-	{
-		if (id != servico.ID)
-			return BadRequest("O ID não corresponde ao serviço.");
-		_context.Entry(id).State = EntityState.Modified;
-		await _context.SaveChangesAsync();
-		return Ok("Serviço atualizado com sucesso.");
-	}
-	
-	
-	[HttpDelete("{id}")]
-	public async Task<IActionResult> DeleteServico(int id)
-	{ 
-		var servico = await _context.Servicos.FindAsync(id);
-		if (servico == null)
-			return NotFound("Serviço não encontrado");
-
-		_context.Servicos.Remove(servico);
-        await _context.SaveChangesAsync();
-		return Ok("Serviço criado com sucesso");
-	}
-
-
-	
+    }
 }

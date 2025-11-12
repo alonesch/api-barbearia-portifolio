@@ -7,7 +7,7 @@ namespace BarbeariaPortifolio.API.Models;
 public class Servico
 {
     [Key]
-    public int ID { get; set; }
+    public int Id { get; set; }
 
     [Column(TypeName = "varchar(100)")]
     [Required]

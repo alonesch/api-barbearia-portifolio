@@ -1,72 +1,49 @@
-﻿using BarbeariaPortifolio.API.Data;
-using BarbeariaPortifolio.API.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using BarbeariaPortifolio.API.Servicos.Interfaces;
+using BarbeariaPortifolio.DTOs;
 
-
-namespace BarbeariaPortfolio.API.Controllers;
-
+namespace BarbeariaPortifolio.API.Controllers;
 
 [ApiController]
-[Route("api/[Controller]")]
+[Route("api/[controller]")]
 public class ClienteController : ControllerBase
 {
-    private readonly DataContext _context;
+    private readonly IClienteServico _clienteServico;
 
-    public ClienteController(DataContext context)
+    public ClienteController(IClienteServico clienteServico)
     {
-        _context = context;
+        _clienteServico = clienteServico;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Cliente>>> GetCliente()
-    {
-        var cliente = await _context.Clientes.ToListAsync();
-        return Ok(cliente);
-    }
+    public async Task<IActionResult> Listar()
+        => Ok(await _clienteServico.ListarTodos());
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Cliente>> GetCliente(int id)
+    public async Task<IActionResult> Buscar(int id)
     {
-        var cliente = await _context.Clientes.FindAsync();
-
-        if (cliente == null)
-            return NotFound("Cliente não encontrado.");
-
-        return Ok(cliente);
+        var cliente = await _clienteServico.BuscarPorId(id);
+        return cliente == null ? NotFound("Cliente não encontrado.") : Ok(cliente);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Cliente>> PostCliente(Cliente cliente)
+    public async Task<IActionResult> Cadastrar([FromBody] ClienteDTO dto)
     {
-        _context.Clientes.Add(cliente);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetCliente), new { id = cliente.ID }, cliente);
+        var novo = await _clienteServico.Cadastrar(dto);
+        return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutClient(int id, Cliente cliente)
+    public async Task<IActionResult> Atualizar(int id, [FromBody] ClienteDTO dto)
     {
-        if (id != cliente.ID)
-            return BadRequest("O ID informado não corresponde ao cliente!");
-
-        _context.Entry(cliente).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-
+        var ok = await _clienteServico.Atualizar(id, dto);
+        return ok ? NoContent() : NotFound("Cliente não encontrado.");
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCliente(int id)
+    public async Task<IActionResult> Excluir(int id)
     {
-        var cliente = await _context.Clientes.FindAsync(id);
-        if (cliente == null) return NotFound("Cliente não encontrado.");
-
-        _context.Clientes.Remove(cliente);
-        await _context.SaveChangesAsync();
-
-        return Ok("Cliente removido com sucesso.");
+        var ok = await _clienteServico.Excluir(id);
+        return ok ? Ok("Cliente removido com sucesso.") : NotFound("Cliente não encontrado.");
     }
 }

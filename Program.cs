@@ -1,5 +1,10 @@
+
 using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Data;
+using BarbeariaPortifolio.API.Repositorios;
+using BarbeariaPortifolio.API.Repositorios.Interfaces;
+using BarbeariaPortifolio.API.Servicos;
+using BarbeariaPortifolio.API.Servicos.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -100,6 +105,17 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
+
+// ===================================================
+// 🧩 Injeção de dependências (Repositórios e Serviços)
+builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
+builder.Services.AddScoped<IClienteServico, ClienteServico>();
+builder.Services.AddScoped<IAgendamentoRepositorio, AgendamentoRepositorio>();
+builder.Services.AddScoped<IAgendamentoServico, AgendamentoServico>();
+builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
+builder.Services.AddScoped<IServicoRepositorio, ServicoRepositorio>();
+builder.Services.AddScoped<IServicoServico, ServicoServico>();
+
 
 // ===================================================
 // ✅ Configuração necessária para o Railway (ANTES do Build)
