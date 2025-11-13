@@ -5,7 +5,7 @@ using BarbeariaPortifolio.DTOs;
 
 namespace BarbeariaPortifolio.API.Servicos
 {
-    public class AgendamentoService : IAgendamentoService
+    public class AgendamentoService : IAgendamentoServico
     {
         private readonly IAgendamentoRepositorio _repositorio;
 
@@ -17,72 +17,24 @@ namespace BarbeariaPortifolio.API.Servicos
         public async Task<IEnumerable<AgendamentoDTO>> ListarTodos()
         {
             var agendamentos = await _repositorio.ListarTodos();
-
-            return agendamentos.Select(a => new AgendamentoDTO
-            {
-                Id = a.Id,
-                Nome = a.Cliente.Nome,
-                Cpf = a.Cliente.Cpf,
-                Telefone = a.Cliente.Telefone,
-                BarbeiroId = a.BarbeiroId,
-                DataHora = a.DataHora,
-                Status = a.Status,
-                Observacao = a.Observacao,
-                AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
-                {
-                    ServicoId = s.ServicoId,
-                    Observacao = s.Observacao
-                }).ToList()
-            });
+            return agendamentos.Select(MapToDto);
         }
 
         public async Task<AgendamentoDTO?> BuscarPorId(int id)
         {
-            var a = await _repositorio.BuscarPorId(id);
-            if (a == null) return null;
-
-            return new AgendamentoDTO
-            {
-                Id = a.Id,
-                Nome = a.Cliente.Nome,
-                Cpf = a.Cliente.Cpf,
-                Telefone = a.Cliente.Telefone,
-                BarbeiroId = a.BarbeiroId,
-                DataHora = a.DataHora,
-                Status = a.Status,
-                Observacao = a.Observacao,
-                AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
-                {
-                    ServicoId = s.ServicoId,
-                    Observacao = s.Observacao
-                }).ToList()
-            };
+            var agendamento = await _repositorio.BuscarPorId(id);
+            return agendamento == null ? null : MapToDto(agendamento);
         }
 
         public async Task<IEnumerable<AgendamentoDTO>> ListarPorBarbeiro(int barbeiroId)
         {
             var agendamentos = await _repositorio.ListarPorBarbeiro(barbeiroId);
-
-            return agendamentos.Select(a => new AgendamentoDTO
-            {
-                Id = a.Id,
-                Nome = a.Cliente.Nome,
-                Cpf = a.Cliente.Cpf,
-                Telefone = a.Cliente.Telefone,
-                BarbeiroId = a.BarbeiroId,
-                DataHora = a.DataHora,
-                Status = a.Status,
-                Observacao = a.Observacao,
-                AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
-                {
-                    ServicoId = s.ServicoId,
-                    Observacao = s.Observacao
-                }).ToList()
-            });
+            return agendamentos.Select(MapToDto);
         }
 
         public async Task<AgendamentoDTO> Cadastrar(AgendamentoDTO dto)
         {
+            
             if (string.IsNullOrWhiteSpace(dto.Nome))
                 throw new Exception("O nome do cliente é obrigatório.");
 
@@ -98,8 +50,10 @@ namespace BarbeariaPortifolio.API.Servicos
             if (dto.AgendamentoServicos == null || dto.AgendamentoServicos.Count == 0)
                 throw new Exception("Selecione pelo menos um serviço.");
 
+            
             var cliente = await _repositorio.BuscarOuCriarCliente(dto.Nome, dto.Cpf, dto.Telefone);
 
+            
             var agendamento = new Agendamento
             {
                 ClienteId = cliente.Id,
@@ -111,8 +65,7 @@ namespace BarbeariaPortifolio.API.Servicos
 
             await _repositorio.Cadastrar(agendamento);
 
-            dto.Id = agendamento.Id;
-
+            
             foreach (var s in dto.AgendamentoServicos)
             {
                 var item = new AgendamentoServico
@@ -125,6 +78,8 @@ namespace BarbeariaPortifolio.API.Servicos
                 await _repositorio.CadastrarAgendamentoServico(item);
             }
 
+            
+            dto.Id = agendamento.Id;
             return dto;
         }
 
@@ -142,5 +97,26 @@ namespace BarbeariaPortifolio.API.Servicos
 
         public async Task<bool> Excluir(int id)
             => await _repositorio.Excluir(id);
+
+        
+        private static AgendamentoDTO MapToDto(Agendamento a)
+        {
+            return new AgendamentoDTO
+            {
+                Id = a.Id,
+                Nome = a.Cliente.Nome,
+                Cpf = a.Cliente.Cpf,
+                Telefone = a.Cliente.Telefone,
+                BarbeiroId = a.BarbeiroId,
+                DataHora = a.DataHora,
+                Status = a.Status,
+                Observacao = a.Observacao,
+                AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
+                {
+                    ServicoId = s.ServicoId,
+                    Observacao = s.Observacao
+                }).ToList()
+            };
+        }
     }
 }

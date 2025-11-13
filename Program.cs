@@ -18,7 +18,35 @@ var builder = WebApplication.CreateBuilder(args);
 // =======================================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "API Barbearia Portifolio", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Digite: Bearer {seu_token}"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
@@ -107,7 +135,7 @@ builder.Services.AddScoped<IServicoServico, ServicoServico>();
 
 // AGENDAMENTO
 builder.Services.AddScoped<IAgendamentoRepositorio, AgendamentoRepositorio>();
-builder.Services.AddScoped<IAgendamentoService, AgendamentoService>();
+builder.Services.AddScoped<IAgendamentoServico, AgendamentoService>();
 
 // BARBEIRO
 builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
@@ -167,5 +195,10 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+
+Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine("API Online. Sem erros aparentes (Consultar logs!)");
+Console.ResetColor();
 
 app.Run();

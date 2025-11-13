@@ -7,7 +7,6 @@ namespace BarbeariaPortifolio.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    
     public class BarbeiroController : ControllerBase
     {
         private readonly IBarbeiroServico _servico;

@@ -24,7 +24,6 @@ namespace BarbeariaPortifolio.API.Servicos
                 Nome = b.Nome,
                 Telefone = b.Telefone,
                 Usuario = b.Usuario?.NomeUsuario,
-
                 Agendamentos = b.Agendamentos?.Select(a => new AgendamentoDTO
                 {
                     Id = a.Id,
@@ -35,13 +34,11 @@ namespace BarbeariaPortifolio.API.Servicos
                     DataHora = a.DataHora,
                     Status = a.Status,
                     Observacao = a.Observacao,
-
                     AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
                     {
                         ServicoId = s.ServicoId,
                         Observacao = s.Observacao
                     }).ToList()
-
                 }).ToList()
             });
         }
@@ -57,7 +54,6 @@ namespace BarbeariaPortifolio.API.Servicos
                 Nome = b.Nome,
                 Telefone = b.Telefone,
                 Usuario = b.Usuario?.NomeUsuario,
-
                 Agendamentos = b.Agendamentos?.Select(a => new AgendamentoDTO
                 {
                     Id = a.Id,
@@ -68,13 +64,11 @@ namespace BarbeariaPortifolio.API.Servicos
                     DataHora = a.DataHora,
                     Status = a.Status,
                     Observacao = a.Observacao,
-
                     AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
                     {
                         ServicoId = s.ServicoId,
                         Observacao = s.Observacao
                     }).ToList()
-
                 }).ToList()
             };
         }

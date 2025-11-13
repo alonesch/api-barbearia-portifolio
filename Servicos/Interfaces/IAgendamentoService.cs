@@ -2,7 +2,7 @@
 
 namespace BarbeariaPortifolio.API.Servicos.Interfaces
 {
-    public interface IAgendamentoService
+    public interface IAgendamentoServico
     {
         Task<IEnumerable<AgendamentoDTO>> ListarTodos();
         Task<AgendamentoDTO?> BuscarPorId(int id);
