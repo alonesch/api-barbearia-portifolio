@@ -7,7 +7,7 @@ namespace BarbeariaPortifolio.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    
     public class BarbeiroController : ControllerBase
     {
         private readonly IBarbeiroServico _servico;
@@ -32,6 +32,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(item);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Cadastrar([FromBody] BarbeiroDTO dto)
         {
@@ -39,6 +40,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] BarbeiroDTO dto)
         {
@@ -46,6 +48,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return ok ? NoContent() : NotFound("Barbeiro não encontrado.");
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)
         {
