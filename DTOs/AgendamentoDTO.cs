@@ -1,13 +1,16 @@
-﻿namespace BarbeariaPortifolio.DTOs;
-
-public class AgendamentoDTO
+﻿namespace BarbeariaPortifolio.DTOs
 {
-    public int Id { get; set; }
-    public string Cliente { get; set; } = string.Empty;
-    public string Barbeiro { get; set; } = string.Empty;
-    public DateTime DataHora { get; set; }
-    public int Status { get; set; }
-    public string? Observacao { get; set; }
-    public List<ServicoDTO> Servicos { get; set; } = new();
+    public class AgendamentoDTO
+    {
+        public int Id { get; set; }
 
+        public int ClienteId { get; set; }
+        public int BarbeiroId { get; set; }
+
+        public DateTime DataHora { get; set; }
+        public int Status { get; set; }
+        public string? Observacao { get; set; }
+
+        public List<int> ServicosIds { get; set; } = new();
+    }
 }
