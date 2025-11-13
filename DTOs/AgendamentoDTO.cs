@@ -7,6 +7,7 @@ public class AgendamentoDTO
     public string Barbeiro { get; set; } = string.Empty;
     public DateTime DataHora { get; set; }
     public int Status { get; set; }
+    public string? Observacao { get; set; }
     public List<ServicoDTO> Servicos { get; set; } = new();
 
 }

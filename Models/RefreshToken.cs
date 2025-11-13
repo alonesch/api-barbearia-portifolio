@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BarbeariaPortifolio.API.Models
 {
@@ -10,16 +9,16 @@ namespace BarbeariaPortifolio.API.Models
 
         [Required]
         public int UsuarioId { get; set; }
+        public Usuario Usuario { get; set; }
 
         [Required]
-        [MaxLength(300)]
-        public string TokenHash { get; set; } = null!; 
+        public string TokenHash { get; set; } = string.Empty;
 
-        public DateTime ExpiresAtUtc { get; set; }
-        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-        public bool Revoked { get; set; } = false;
+        [Required]
+        public DateTime ExpiraEm { get; set; }
 
-        [ForeignKey(nameof(UsuarioId))]
-        public Usuario Usuario { get; set; } = null!;
+        public bool Revogado { get; set; } = false;
+
+        public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
     }
 }

@@ -20,13 +20,22 @@ namespace BarbeariaPortifolio.API.Repositorios
             return await _banco.Barbeiros
                 .Include(b => b.Usuario)
                 .Include(b => b.Agendamentos)
-                .ThenInclude(a => a.Cliente)
+                    .ThenInclude(a => a.Cliente)
                 .Select(b => new BarbeiroDTO
                 {
                     Id = b.Id,
                     Nome = b.Nome ?? string.Empty,
                     Telefone = b.Telefone,
-                    Usuario = b.Usuario != null ? b.Usuario.NomeUsuario : null,
+                    Usuario = b.Usuario != null
+                        ? new UsuarioDTO
+                        {
+                            Id = b.Usuario.Id,
+                            NomeUsuario = b.Usuario.NomeUsuario,
+                            Role = b.Usuario.Role,
+                            BarbeiroId = b.Id
+                        }
+                        : null,
+
                     Agendamentos = b.Agendamentos != null
                         ? b.Agendamentos.Select(a => new AgendamentoDTO
                         {
@@ -35,6 +44,7 @@ namespace BarbeariaPortifolio.API.Repositorios
                             Barbeiro = b.Nome ?? string.Empty,
                             DataHora = a.DataHora,
                             Status = a.Status,
+                            Observacao = a.Observacao,
                         }).ToList()
                         : new List<AgendamentoDTO>()
                 })
@@ -42,10 +52,12 @@ namespace BarbeariaPortifolio.API.Repositorios
                 .ToListAsync();
         }
 
+
         public async Task<Barbeiro?> BuscarPorId(int id)
             => await _banco.Barbeiros
                 .Include(b => b.Usuario)
                 .Include(b => b.Agendamentos)
+                    .ThenInclude(a => a.Cliente)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
         public async Task<Barbeiro?> BuscarPorNome(string nome)

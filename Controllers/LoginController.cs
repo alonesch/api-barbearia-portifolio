@@ -1,12 +1,9 @@
-﻿using BarbeariaPortifolio.API.Auth;
-using BarbeariaPortifolio.API.Data;
-using BarbeariaPortifolio.API.Models;
-using Microsoft.AspNetCore.Identity.Data;
+﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
+using BarbeariaPortifolio.API.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
+using BarbeariaPortifolio.API.Auth;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -14,49 +11,60 @@ namespace BarbeariaPortifolio.API.Controllers
     [Route("api/[controller]")]
     public class LoginController : ControllerBase
     {
-        private readonly DataContext _context;
-        private readonly TokenService _tokenService;
-        private readonly JwtOptions _jwt;
+        private readonly IAuthServico _auth;
+        private readonly JwtOptions _authJwt;
 
-        public LoginController(DataContext context, TokenService tokenService, IOptions<JwtOptions> jwt)
+        public LoginController(IAuthServico auth, IOptions<JwtOptions> jwt)
         {
-            _context = context;
-            _tokenService = tokenService;
-            _jwt = jwt.Value;
+            _auth = auth;
+            _authJwt = jwt.Value;
         }
 
-        // 🔒 Protegido com Rate Limiting
+        public class LoginRequest
+        {
+            public string Usuario { get; set; } = string.Empty;
+            public string Senha { get; set; } = string.Empty;
+        }
+
+        // 🔒 Protegido com rate limit
         [EnableRateLimiting("login")]
         [HttpPost]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.Usuario) || string.IsNullOrWhiteSpace(request.Senha))
-                return BadRequest(new { autenticado = false, mensagem = "Credenciais inválidas." });
-
-            var user = _context.Usuarios.FirstOrDefault(u => u.NomeUsuario == request.Usuario && u.Ativo);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Senha, user.Senha))
-                return Unauthorized(new { autenticado = false, mensagem = "Usuário ou senha incorretos." });
-
-            // 🔹 Gera claims do usuário
-            var claims = user.ToClaims();
-
-            // 🔹 Gera o access token
-            var accessToken = _tokenService.GenerateAccessToken(claims);
-
-            // 🔹 Cria o refresh token
-            var refreshRaw = _tokenService.GenerateRefreshTokenRaw();
-            var refreshHash = _tokenService.HashRefreshToken(refreshRaw);
-
-            var rt = new RefreshToken
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.Usuario) ||
+                string.IsNullOrWhiteSpace(request.Senha))
             {
-                UsuarioId = user.Id,
-                TokenHash = refreshHash,
-                ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays)
-            };
+                return BadRequest(new
+                {
+                    autenticado = false,
+                    mensagem = "Credenciais inválidas."
+                });
+            }
 
-            _context.RefreshTokens.Add(rt);
-            _context.SaveChanges();
+            // 🔍 Valida usuário + senha
+            var (sucesso, mensagem, usuario) =
+                await _auth.ValidarLogin(request.Usuario, request.Senha);
 
+            if (!sucesso || usuario == null)
+            {
+                return Unauthorized(new
+                {
+                    autenticado = false,
+                    mensagem
+                });
+            }
+
+            // 🔑 Gera Access Token
+            var accessToken = await _auth.GerarAccessToken(usuario);
+
+            // 🔄 Gera Refresh Token bruto + hash
+            var (refreshRaw, refreshHash) = await _auth.GerarRefreshToken();
+
+            // 💾 Salva refresh token no banco
+            await _auth.SalvarRefreshToken(usuario, refreshHash, _authJwt.RefreshTokenDays);
+
+            // 📦 Retorno final
             return Ok(new
             {
                 autenticado = true,
@@ -65,18 +73,15 @@ namespace BarbeariaPortifolio.API.Controllers
                 refreshToken = refreshRaw,
                 usuario = new
                 {
-                    user.Id,
-                    user.NomeUsuario,
-                    user.NomeCompleto,
-                    user.Cargo
+                    usuario.Id,
+                    usuario.NomeUsuario,
+                    usuario.NomeCompleto,
+                    usuario.Cargo,
+                    usuario.Role,
+                    usuario.BarbeiroId
                 }
             });
         }
-
-        public class LoginRequest
-        {
-            public string Usuario { get; set; } = string.Empty;
-            public string Senha { get; set; } = string.Empty;
-        }
     }
 }
+
