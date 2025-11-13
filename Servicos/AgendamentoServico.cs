@@ -2,102 +2,113 @@
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace BarbeariaPortifolio.API.Servicos;
-
-public class AgendamentoServico : IAgendamentoServico
+namespace BarbeariaPortifolio.API.Servicos
 {
-    private readonly IAgendamentoRepositorio _repositorio;
-    private readonly IClienteRepositorio _clienteRepo;
-    private readonly IBarbeiroRepositorio _barbeiroRepo;
-
-    public AgendamentoServico(
-        IAgendamentoRepositorio repositorio,
-        IClienteRepositorio clienteRepo,
-        IBarbeiroRepositorio barbeiroRepo)
+    public class AgendamentoServico : IAgendamentoServico
     {
-        _repositorio = repositorio;
-        _clienteRepo = clienteRepo;
-        _barbeiroRepo = barbeiroRepo;
-    }
+        private readonly IAgendamentoRepositorio _repositorio;
 
-    public async Task<IEnumerable<AgendamentoDTO>> ListarTodos()
-    {
-        var agendamentos = await _repositorio.ListarTodos();
-
-        return agendamentos.Select(a => new AgendamentoDTO
+        public AgendamentoServico(IAgendamentoRepositorio repositorio)
         {
-            Id = a.Id,
-            Cliente = a.Cliente.Nome,
-            Barbeiro = a.Barbeiro.Nome,
-            DataHora = a.DataHora,
-            Status = a.Status,
-            Observacao = a.Observacao,
-            Servicos = a.AgendamentoServicos.Select(s => new ServicoDTO
+            _repositorio = repositorio;
+        }
+
+        public async Task<IEnumerable<AgendamentoDTO>> ListarTodos()
+        {
+            var agendamentos = await _repositorio.ListarTodos();
+
+            return agendamentos.Select(a => new AgendamentoDTO
             {
-                NomeServico = s.Servico.NomeServico,
-                Preco = s.Servico.Preco
-            }).ToList()
-        });
-    }
+                Id = a.Id,
+                Cliente = a.Cliente.Nome,
+                Barbeiro = a.Barbeiro.Nome,
+                DataHora = a.DataHora,
+                Status = a.Status,
+                Servicos = a.AgendamentoServicos.Select(s => new ServicoDTO
 
-    public async Task<AgendamentoDTO?> BuscarPorId(int id)
-    {
-        var a = await _repositorio.BuscarPorId(id);
-        if (a == null) return null;
+                {
+                    NomeServico = s.Servico.NomeServico,
+                    Preco = s.Servico.Preco
+                }).ToList()
+            });
+        }
 
-        return new AgendamentoDTO
+        public async Task<AgendamentoDTO?> BuscarPorId(int id)
         {
-            Id = a.Id,
-            Cliente = a.Cliente.Nome,
-            Barbeiro = a.Barbeiro.Nome,
-            DataHora = a.DataHora,
-            Status = a.Status,
-            Observacao = a.Observacao,
-            Servicos = a.AgendamentoServicos.Select(s => new ServicoDTO
+            var a = await _repositorio.BuscarPorId(id);
+            if (a == null) return null;
+
+            return new AgendamentoDTO
             {
-                NomeServico = s.Servico.NomeServico,
-                Preco = s.Servico.Preco
-            }).ToList()
-        };
-    }
+                Id = a.Id,
+                Cliente = a.Cliente.Nome,
+                Barbeiro = a.Barbeiro.Nome,
+                DataHora = a.DataHora,
+                Status = a.Status,
+                Servicos = a.AgendamentoServicos.Select(s => new ServicoDTO
+                {
+                    NomeServico = s.Servico.NomeServico,
+                    Preco = s.Servico.Preco,
+                    Observacao = s.Observacao
+                }).ToList()
+            };
 
-    public async Task<AgendamentoDTO> Cadastrar(AgendamentoDTO dto)
-    {
-        var cliente = await _clienteRepo.BuscarPorNome(dto.Cliente);
+        }
 
-        var barbeiro = await _barbeiroRepo.BuscarPorNome(dto.Barbeiro);
-
-        var agendamento = new Agendamento
+        public async Task<IEnumerable<AgendamentoDTO>> ListarPorBarbeiro(int barbeiroId)
         {
-            ClienteId = cliente.Id,
-            BarbeiroId = barbeiro.Id,
-            DataHora = dto.DataHora,
-            Status = dto.Status,
-            Observacao = dto.Observacao,
-            DataRegistro = DateTime.Now
-        };
+            var agendamentos = await _repositorio.ListarPorBarbeiro(barbeiroId);
 
-        var criado = await _repositorio.Cadastrar(agendamento);
+            return agendamentos.Select(a => new AgendamentoDTO
+            {
+                Id = a.Id,
+                Cliente = a.Cliente.Nome,
+                Barbeiro = a.Barbeiro.Nome,
+                DataHora = a.DataHora,
+                Status = a.Status,
+                Servicos = a.AgendamentoServicos.Select(s => new ServicoDTO
+                {
+                    NomeServico = s.Servico.NomeServico,
+                    Preco = s.Servico.Preco
+                }).ToList()
+            });
+        }
 
-        return await BuscarPorId(criado.Id) ?? throw new Exception("Erro ao criar agendamento");
+        public async Task<AgendamentoDTO> Cadastrar(AgendamentoDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Cliente))
+                throw new Exception("O cliente é obrigatório.");
+
+            if (dto.DataHora == default)
+                throw new Exception("A data e hora do agendamento são obrigatórias.");
+
+            var agendamento = new Agendamento
+            {
+                ClienteId = 0, // será buscado no repositório
+                BarbeiroId = 0, // idem
+                DataHora = dto.DataHora,
+                Status = dto.Status,
+                
+            };
+
+            await _repositorio.Cadastrar(agendamento);
+            dto.Id = agendamento.Id;
+            return dto;
+        }
+
+        public async Task<bool> Atualizar(int id, AgendamentoDTO dto)
+        {
+            var agendamento = await _repositorio.BuscarPorId(id);
+            if (agendamento == null) return false;
+
+            agendamento.DataHora = dto.DataHora;
+            agendamento.Status = dto.Status;
+
+            return await _repositorio.Atualizar(id, agendamento);
+        }
+
+        public async Task<bool> Excluir(int id)
+            => await _repositorio.Excluir(id);
     }
-
-    public async Task<bool> Atualizar(int id, AgendamentoDTO dto)
-    {
-        var existente = await _repositorio.BuscarPorId(id);
-        if (existente == null) return false;
-
-        existente.Status = dto.Status;
-        existente.Observacao = dto.Observacao;
-        existente.DataHora = dto.DataHora;
-
-        return await _repositorio.Atualizar(id, existente);
-    }
-
-    public async Task<bool> Excluir(int id)
-        => await _repositorio.Excluir(id);
 }

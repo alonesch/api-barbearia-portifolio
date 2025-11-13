@@ -11,4 +11,5 @@ public interface IAgendamentoRepositorio
     Task<Agendamento> Cadastrar(Agendamento agendamento);
     Task<bool> Atualizar(int id, Agendamento agendamento);
     Task<bool> Excluir(int id);
+    Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId);
 }

@@ -14,19 +14,19 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ===================================================
-// 🔹 Serviços principais da aplicação
+
+//  Serviços principais da aplicação
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 🔹 JWT e Serviços
+//  JWT e Serviços
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddAuthorization();
 
-// ===================================================
-// 🔹 Connection String (Railway ou fallback local)
+
+// Connection String (Railway ou fallback local)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -40,8 +40,8 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// ===================================================
-// 🔹 JWT Key
+
+//  JWT Key
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
 
@@ -69,8 +69,8 @@ Console.WriteLine("✅ Connection String carregada com sucesso:");
 Console.WriteLine($"   {safeConn}");
 Console.ResetColor();
 
-// ===================================================
-// 🔹 Configuração JWT
+
+//  Configuração JWT
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
 
 builder.Services
@@ -115,7 +115,8 @@ builder.Services.AddScoped<IAgendamentoServico, AgendamentoServico>();
 builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
 builder.Services.AddScoped<IServicoRepositorio, ServicoRepositorio>();
 builder.Services.AddScoped<IServicoServico, ServicoServico>();
-
+builder.Services.AddScoped<IBarbeiroServico, BarbeiroServico>();
+builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
 
 // ===================================================
 // ✅ Configuração necessária para o Railway (ANTES do Build)

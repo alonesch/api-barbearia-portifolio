@@ -32,6 +32,18 @@ public class AgendamentoController : ControllerBase
         return Ok(agendamento);
     }
 
+    [HttpGet("barbeiro/{id}")]
+    public async Task<IActionResult> ListarPorBarbeiro(int id)
+    {
+        var agendamentos = await _servico.ListarPorBarbeiro(id);
+
+        if (agendamentos == null || !agendamentos.Any())
+            return NotFound("Nenhum agendamento encontrado para este barbeiro.");
+
+        return Ok(agendamentos);
+    }
+
+
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Cadastrar([FromBody] AgendamentoDTO dto)

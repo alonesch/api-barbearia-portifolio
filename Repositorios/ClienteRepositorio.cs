@@ -11,9 +11,9 @@ public class ClienteRepositorio : IClienteRepositorio
     private readonly DataContext _banco;
 
 
-    public ClienteRepositorio(DataContext _banco)
+    public ClienteRepositorio(DataContext banco)
     {
-        _banco = _banco;
+        _banco = banco;
     }
 
     public async Task<IEnumerable<Cliente>> ListarTodos()

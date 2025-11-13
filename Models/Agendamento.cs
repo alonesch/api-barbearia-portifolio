@@ -22,9 +22,6 @@ public class Agendamento
 
     public int Status { get; set; }
 
-    [Column(TypeName = "varchar(255)")]
-    public string? Observacao { get; set; }
-
     [Column(TypeName = "datetime")]
     public DateTime DataRegistro { get; set; } = DateTime.Now;
 

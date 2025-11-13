@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BarbeariaPortfolio.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+479708ce1317dd012e9b10059859fa5fe6c8f9c6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6482ce3d2a055ce713499be7c6c7be6eda669a55")]
 [assembly: System.Reflection.AssemblyProductAttribute("BarbeariaPortfolio.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BarbeariaPortfolio.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
