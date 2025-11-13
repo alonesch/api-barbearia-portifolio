@@ -1,15 +1,18 @@
 ﻿using BarbeariaPortifolio.API.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace BarbeariaPortifolio.API.Repositorios.Interfaces;
-
-public interface IAgendamentoRepositorio
+namespace BarbeariaPortifolio.API.Repositorios.Interfaces
 {
-    Task<IEnumerable<Agendamento>> ListarTodos();
-    Task<Agendamento?> BuscarPorId(int id);
-    Task<Agendamento> Cadastrar(Agendamento agendamento);
-    Task<bool> Atualizar(int id, Agendamento agendamento);
-    Task<bool> Excluir(int id);
-    Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId);
+    public interface IAgendamentoRepositorio
+    {
+        Task<IEnumerable<Agendamento>> ListarTodos();
+        Task<Agendamento?> BuscarPorId(int id);
+        Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId);
+
+        Task<Agendamento> Cadastrar(Agendamento agendamento);
+        Task<bool> Atualizar(Agendamento agendamento);
+        Task<bool> Excluir(int id);
+
+        Task<Cliente> BuscarOuCriarCliente(string nome, string cpf, string telefone);
+        Task CadastrarAgendamentoServico(AgendamentoServico item);
+    }
 }

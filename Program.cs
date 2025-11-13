@@ -107,7 +107,7 @@ builder.Services.AddScoped<IServicoServico, ServicoServico>();
 
 // AGENDAMENTO
 builder.Services.AddScoped<IAgendamentoRepositorio, AgendamentoRepositorio>();
-builder.Services.AddScoped<IAgendamentoServico, AgendamentoServico>();
+builder.Services.AddScoped<IAgendamentoService, AgendamentoService>();
 
 // BARBEIRO
 builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();

@@ -5,11 +5,11 @@ using BarbeariaPortifolio.DTOs;
 
 namespace BarbeariaPortifolio.API.Servicos
 {
-    public class AgendamentoServico : IAgendamentoServico
+    public class AgendamentoService : IAgendamentoService
     {
         private readonly IAgendamentoRepositorio _repositorio;
 
-        public AgendamentoServico(IAgendamentoRepositorio repositorio)
+        public AgendamentoService(IAgendamentoRepositorio repositorio)
         {
             _repositorio = repositorio;
         }
@@ -21,14 +21,18 @@ namespace BarbeariaPortifolio.API.Servicos
             return agendamentos.Select(a => new AgendamentoDTO
             {
                 Id = a.Id,
-                ClienteId = a.ClienteId,
+                Nome = a.Cliente.Nome,
+                Cpf = a.Cliente.Cpf,
+                Telefone = a.Cliente.Telefone,
                 BarbeiroId = a.BarbeiroId,
                 DataHora = a.DataHora,
                 Status = a.Status,
                 Observacao = a.Observacao,
-                ServicosIds = a.AgendamentoServicos?
-                    .Select(s => s.ServicoId)
-                    .ToList() ?? new List<int>()
+                AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
+                {
+                    ServicoId = s.ServicoId,
+                    Observacao = s.Observacao
+                }).ToList()
             });
         }
 
@@ -40,14 +44,18 @@ namespace BarbeariaPortifolio.API.Servicos
             return new AgendamentoDTO
             {
                 Id = a.Id,
-                ClienteId = a.ClienteId,
+                Nome = a.Cliente.Nome,
+                Cpf = a.Cliente.Cpf,
+                Telefone = a.Cliente.Telefone,
                 BarbeiroId = a.BarbeiroId,
                 DataHora = a.DataHora,
                 Status = a.Status,
                 Observacao = a.Observacao,
-                ServicosIds = a.AgendamentoServicos?
-                    .Select(s => s.ServicoId)
-                    .ToList() ?? new List<int>()
+                AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
+                {
+                    ServicoId = s.ServicoId,
+                    Observacao = s.Observacao
+                }).ToList()
             };
         }
 
@@ -58,49 +66,65 @@ namespace BarbeariaPortifolio.API.Servicos
             return agendamentos.Select(a => new AgendamentoDTO
             {
                 Id = a.Id,
-                ClienteId = a.ClienteId,
+                Nome = a.Cliente.Nome,
+                Cpf = a.Cliente.Cpf,
+                Telefone = a.Cliente.Telefone,
                 BarbeiroId = a.BarbeiroId,
                 DataHora = a.DataHora,
                 Status = a.Status,
                 Observacao = a.Observacao,
-                ServicosIds = a.AgendamentoServicos?
-                    .Select(s => s.ServicoId)
-                    .ToList() ?? new List<int>()
+                AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
+                {
+                    ServicoId = s.ServicoId,
+                    Observacao = s.Observacao
+                }).ToList()
             });
         }
 
         public async Task<AgendamentoDTO> Cadastrar(AgendamentoDTO dto)
         {
-            if (dto.ClienteId <= 0)
-                throw new Exception("ClienteId é obrigatório.");
+            if (string.IsNullOrWhiteSpace(dto.Nome))
+                throw new Exception("O nome do cliente é obrigatório.");
+
+            if (string.IsNullOrWhiteSpace(dto.Telefone))
+                throw new Exception("O telefone do cliente é obrigatório.");
 
             if (dto.BarbeiroId <= 0)
-                throw new Exception("BarbeiroId é obrigatório.");
+                throw new Exception("Barbeiro inválido.");
 
             if (dto.DataHora == default)
                 throw new Exception("A data e hora do agendamento são obrigatórias.");
 
-            if (dto.ServicosIds == null || dto.ServicosIds.Count == 0)
-                throw new Exception("Ao menos um serviço é obrigatório.");
+            if (dto.AgendamentoServicos == null || dto.AgendamentoServicos.Count == 0)
+                throw new Exception("Selecione pelo menos um serviço.");
+
+            var cliente = await _repositorio.BuscarOuCriarCliente(dto.Nome, dto.Cpf, dto.Telefone);
 
             var agendamento = new Agendamento
             {
-                ClienteId = dto.ClienteId,
+                ClienteId = cliente.Id,
                 BarbeiroId = dto.BarbeiroId,
                 DataHora = dto.DataHora,
-                Status = dto.Status,
-                Observacao = dto.Observacao,
-                DataRegistro = DateTime.UtcNow,
-                AgendamentoServicos = dto.ServicosIds.Select(id =>
-                    new BarbeariaPortifolio.API.Models.AgendamentoServico
-                    {
-                        ServicoId = id
-                    }).ToList()
+                Status = dto.Status > 0 ? dto.Status : 1,
+                Observacao = dto.Observacao
             };
 
             await _repositorio.Cadastrar(agendamento);
 
             dto.Id = agendamento.Id;
+
+            foreach (var s in dto.AgendamentoServicos)
+            {
+                var item = new AgendamentoServico
+                {
+                    AgendamentoId = agendamento.Id,
+                    ServicoId = s.ServicoId,
+                    Observacao = s.Observacao
+                };
+
+                await _repositorio.CadastrarAgendamentoServico(item);
+            }
+
             return dto;
         }
 
@@ -113,8 +137,7 @@ namespace BarbeariaPortifolio.API.Servicos
             agendamento.Status = dto.Status;
             agendamento.Observacao = dto.Observacao;
 
-            // se quiser atualizar serviços depois, faz aqui
-            return await _repositorio.Atualizar(id, agendamento);
+            return await _repositorio.Atualizar(agendamento);
         }
 
         public async Task<bool> Excluir(int id)

@@ -1,12 +1,10 @@
-﻿namespace BarbeariaPortifolio.DTOs;
-
-public class ServicoDTO
+﻿namespace BarbeariaPortifolio.DTOs
 {
-    public required string NomeServico { get; set; }
-    public string? Observacao { get; set; }
-
-    public decimal Preco { get; set; }
-    public AgendamentoDTO? Agendamento { get; set; }
-
-    
+    public class ServicoDTO
+    {
+        public int Id { get; set; }
+        public string NomeServico { get; set; } = string.Empty;
+        public decimal Preco { get; set; }
+        public string? Observacao { get; set; }
+    }
 }

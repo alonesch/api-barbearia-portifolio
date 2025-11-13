@@ -20,18 +20,8 @@ namespace BarbeariaPortifolio.API.Repositorios
                 .Include(a => a.Cliente)
                 .Include(a => a.Barbeiro)
                 .Include(a => a.AgendamentoServicos)
-                    .ThenInclude(s => s.Servico)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId)
-        {
-            return await _banco.Agendamentos
-                .Include(a => a.Cliente)
-                .Include(a => a.Barbeiro)
-                .Include(a => a.AgendamentoServicos)
-                    .ThenInclude(s => s.Servico)
-                .Where(a => a.BarbeiroId == barbeiroId)
+                    .ThenInclude(asg => asg.Servico)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -41,8 +31,20 @@ namespace BarbeariaPortifolio.API.Repositorios
                 .Include(a => a.Cliente)
                 .Include(a => a.Barbeiro)
                 .Include(a => a.AgendamentoServicos)
-                    .ThenInclude(s => s.Servico)
+                    .ThenInclude(asg => asg.Servico)
                 .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
+        public async Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId)
+        {
+            return await _banco.Agendamentos
+                .Where(a => a.BarbeiroId == barbeiroId)
+                .Include(a => a.Cliente)
+                .Include(a => a.Barbeiro)
+                .Include(a => a.AgendamentoServicos)
+                    .ThenInclude(asg => asg.Servico)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<Agendamento> Cadastrar(Agendamento agendamento)
@@ -52,12 +54,9 @@ namespace BarbeariaPortifolio.API.Repositorios
             return agendamento;
         }
 
-        public async Task<bool> Atualizar(int id, Agendamento agendamento)
+        public async Task<bool> Atualizar(Agendamento agendamento)
         {
-            if (id != agendamento.Id)
-                return false;
-
-            _banco.Entry(agendamento).State = EntityState.Modified;
+            _banco.Agendamentos.Update(agendamento);
             await _banco.SaveChangesAsync();
             return true;
         }
@@ -70,6 +69,33 @@ namespace BarbeariaPortifolio.API.Repositorios
             _banco.Agendamentos.Remove(agendamento);
             await _banco.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<Cliente> BuscarOuCriarCliente(string nome, string cpf, string telefone)
+        {
+            var cliente = await _banco.Clientes
+                .FirstOrDefaultAsync(c => c.Telefone == telefone);
+
+            if (cliente != null)
+                return cliente;
+
+            cliente = new Cliente
+            {
+                Nome = nome,
+                Cpf = cpf,
+                Telefone = telefone
+            };
+
+            _banco.Clientes.Add(cliente);
+            await _banco.SaveChangesAsync();
+
+            return cliente;
+        }
+
+        public async Task CadastrarAgendamentoServico(AgendamentoServico item)
+        {
+            _banco.AgendamentoServicos.Add(item);
+            await _banco.SaveChangesAsync();
         }
     }
 }

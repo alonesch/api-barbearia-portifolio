@@ -1,7 +1,6 @@
 ﻿using BarbeariaPortifolio.API.Data;
 using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
-using BarbeariaPortifolio.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace BarbeariaPortifolio.API.Repositorios
@@ -15,57 +14,37 @@ namespace BarbeariaPortifolio.API.Repositorios
             _banco = banco;
         }
 
-        public async Task<IEnumerable<BarbeiroDTO>> ListarTodos()
+        public async Task<IEnumerable<Barbeiro>> ListarTodos()
         {
             return await _banco.Barbeiros
                 .Include(b => b.Usuario)
-                .Include(b => b.Agendamentos)
+                .Include(b => b.Agendamentos!)
                     .ThenInclude(a => a.Cliente)
-                .Select(b => new BarbeiroDTO
-                {
-                    Id = b.Id,
-                    Nome = b.Nome ?? string.Empty,
-                    Telefone = b.Telefone,
-                    Usuario = b.Usuario != null
-                        ? new UsuarioDTO
-                        {
-                            Id = b.Usuario.Id,
-                            NomeUsuario = b.Usuario.NomeUsuario,
-                            Role = b.Usuario.Role,
-                            BarbeiroId = b.Id
-                        }
-                        : null,
-
-                    Agendamentos = b.Agendamentos != null
-                        ? b.Agendamentos.Select(a => new AgendamentoDTO
-                        {
-                            Id = a.Id,
-                            Cliente = a.Cliente.Nome,
-                            Barbeiro = b.Nome ?? string.Empty,
-                            DataHora = a.DataHora,
-                            Status = a.Status,
-                            Observacao = a.Observacao,
-                        }).ToList()
-                        : new List<AgendamentoDTO>()
-                })
+                .Include(b => b.Agendamentos!)
+                    .ThenInclude(a => a.AgendamentoServicos!)
+                        .ThenInclude(asv => asv.Servico)
                 .AsNoTracking()
                 .ToListAsync();
         }
 
-
         public async Task<Barbeiro?> BuscarPorId(int id)
-            => await _banco.Barbeiros
+        {
+            return await _banco.Barbeiros
                 .Include(b => b.Usuario)
-                .Include(b => b.Agendamentos)
+                .Include(b => b.Agendamentos!)
                     .ThenInclude(a => a.Cliente)
+                .Include(b => b.Agendamentos!)
+                    .ThenInclude(a => a.AgendamentoServicos!)
+                        .ThenInclude(asv => asv.Servico)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(b => b.Id == id);
+        }
 
         public async Task<Barbeiro?> BuscarPorNome(string nome)
         {
             return await _banco.Barbeiros
                 .AsNoTracking()
-                .FirstOrDefaultAsync(b => b.Nome != null && b.Nome.ToLower() == nome.ToLower());
-
+                .FirstOrDefaultAsync(b => b.Nome == nome);
         }
 
         public async Task<Barbeiro> Cadastrar(Barbeiro barbeiro)
@@ -77,7 +56,8 @@ namespace BarbeariaPortifolio.API.Repositorios
 
         public async Task<bool> Atualizar(int id, Barbeiro barbeiro)
         {
-            if (id != barbeiro.Id) return false;
+            if (id != barbeiro.Id)
+                return false;
 
             _banco.Entry(barbeiro).State = EntityState.Modified;
             await _banco.SaveChangesAsync();
@@ -87,7 +67,8 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task<bool> Excluir(int id)
         {
             var barbeiro = await _banco.Barbeiros.FindAsync(id);
-            if (barbeiro == null) return false;
+            if (barbeiro == null)
+                return false;
 
             _banco.Barbeiros.Remove(barbeiro);
             await _banco.SaveChangesAsync();

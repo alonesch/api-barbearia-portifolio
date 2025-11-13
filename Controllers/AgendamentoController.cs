@@ -10,9 +10,9 @@ namespace BarbeariaPortifolio.API.Controllers;
 [ApiController]
 public class AgendamentoController : ControllerBase
 {
-    private readonly IAgendamentoServico _servico;
+    private readonly IAgendamentoService _servico;
 
-    public AgendamentoController(IAgendamentoServico servico)
+    public AgendamentoController(IAgendamentoService servico)
     {
         _servico = servico;
     }
