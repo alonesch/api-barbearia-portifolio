@@ -1,9 +1,8 @@
 ﻿using BarbeariaPortifolio.API.Data;
 using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
+using BarbeariaPortifolio.DTOs;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace BarbeariaPortifolio.API.Repositorios
 {
@@ -16,28 +15,32 @@ namespace BarbeariaPortifolio.API.Repositorios
             _banco = banco;
         }
 
-        // RETORNA MODEL, NÃO DTO
-        public async Task<IEnumerable<Usuario>> ListarTodos()
+        
+        public async Task<IEnumerable<UsuarioDTO>> ListarTodos()
         {
             return await _banco.Usuarios
-                .Include(u => u.Barbeiro)
+                .Select(u => new UsuarioDTO
+                {
+                    Id = u.Id,
+                    NomeUsuario = u.NomeUsuario,
+                    Role = u.Role,
+                    BarbeiroId = u.Barbeiro != null ? u.Barbeiro.Id : null
+                })
                 .AsNoTracking()
                 .ToListAsync();
         }
 
+        
         public async Task<Usuario?> BuscarPorId(int id)
         {
             return await _banco.Usuarios
-                .Include(u => u.Barbeiro)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
+        
         public async Task<Usuario?> BuscarPorNome(string nomeUsuario)
         {
             return await _banco.Usuarios
-                .Include(u => u.Barbeiro)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(u =>
                     u.NomeUsuario.ToLower() == nomeUsuario.ToLower()
                 );
@@ -63,6 +66,7 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task<bool> Excluir(int id)
         {
             var usuario = await _banco.Usuarios.FindAsync(id);
+
             if (usuario == null)
                 return false;
 

@@ -1,4 +1,3 @@
-
 using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Data;
 using BarbeariaPortifolio.API.Repositorios;
@@ -14,63 +13,50 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-//  Serviços principais da aplicação
+// =======================================================================
+// CONFIGURAÇÕES INICIAIS
+// =======================================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//  JWT e Serviços
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddAuthorization();
 
+// =======================================================================
+// BANCO DE DADOS
+// =======================================================================
 
-// Connection String (Railway ou fallback local)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("⚠️ Nenhuma connection string encontrada nas variáveis de ambiente. Usando fallback local.");
-    connectionString = "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
+    Console.WriteLine("⚠️ Nenhuma connection string encontrada. Usando fallback...");
     Console.ResetColor();
+
+    connectionString =
+        "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
 }
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// =======================================================================
+// JWT
+// =======================================================================
 
-//  JWT Key
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
 
 if (string.IsNullOrWhiteSpace(keyValue))
 {
     Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("❌ ERRO: Nenhuma chave JWT foi encontrada!");
-    Console.WriteLine("   Defina a variável de ambiente Jwt__Key antes de iniciar o servidor.");
-    Console.ResetColor();
+    Console.WriteLine("❌ Nenhuma chave JWT encontrada!");
     Environment.Exit(1);
 }
 
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine($"✅ Ambiente atual: {builder.Environment.EnvironmentName}");
-Console.WriteLine($"✅ JWT Key carregada ({keyValue.Length} caracteres)");
-Console.ResetColor();
-
-// Exibe Connection String mascarada
-var safeConn = connectionString.Contains("Password=")
-    ? connectionString.Split("Password=")[0] + "Password=********;"
-    : connectionString;
-
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine("✅ Connection String carregada com sucesso:");
-Console.WriteLine($"   {safeConn}");
-Console.ResetColor();
-
-
-//  Configuração JWT
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
 
 builder.Services
@@ -81,7 +67,7 @@ builder.Services
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // ✅ Railway já fornece HTTPS
+        options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -96,8 +82,9 @@ builder.Services
         };
     });
 
-// ===================================================
-// ✅ CORS — libera apenas o domínio real da Vercel
+// =======================================================================
+// CORS
+// =======================================================================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -106,74 +93,79 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-// ===================================================
-// 🧩 Injeção de dependências (Repositórios e Serviços)
+// =======================================================================
+// DEPENDENCY INJECTION (REPOS & SERVICES)
+// =======================================================================
+
+// CLIENTE
 builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
 builder.Services.AddScoped<IClienteServico, ClienteServico>();
-builder.Services.AddScoped<IAgendamentoRepositorio, AgendamentoRepositorio>();
-builder.Services.AddScoped<IAgendamentoServico, AgendamentoServico>();
-builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
+
+// SERVIÇO
 builder.Services.AddScoped<IServicoRepositorio, ServicoRepositorio>();
 builder.Services.AddScoped<IServicoServico, ServicoServico>();
-builder.Services.AddScoped<IBarbeiroServico, BarbeiroServico>();
-builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
 
-// ===================================================
-// ✅ Configuração necessária para o Railway (ANTES do Build)
+// AGENDAMENTO
+builder.Services.AddScoped<IAgendamentoRepositorio, AgendamentoRepositorio>();
+builder.Services.AddScoped<IAgendamentoServico, AgendamentoServico>();
+
+// BARBEIRO
+builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
+builder.Services.AddScoped<IBarbeiroServico, BarbeiroServico>();
+
+// USUÁRIO
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
+builder.Services.AddScoped<IUsuarioServico, UsuarioServico>();
+
+// AUTH
+builder.Services.AddScoped<IAuthServico, AuthServico>();
+builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
+
+
+// =======================================================================
+// KESTREL CONFIG (RAILWAY REQUERIDO)
+// =======================================================================
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(int.Parse(port));
 });
+
 builder.WebHost.UseSetting("AllowedHosts", "*");
 
-// ===================================================
+// =======================================================================
 var app = builder.Build();
 
-// ✅ Aplica migrations automáticas no MySQL (Railway)
+// =======================================================================
+// MIGRATIONS AUTOMÁTICAS
+// =======================================================================
 using (var scope = app.Services.CreateScope())
 {
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<DataContext>();
         db.Database.Migrate();
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("✅ Banco de dados atualizado com sucesso!");
-        Console.ResetColor();
     }
     catch (Exception ex)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"❌ Erro ao atualizar o banco: {ex.Message}");
-        Console.ResetColor();
+        Console.WriteLine($"❌ Erro ao aplicar migrations: {ex.Message}");
     }
 }
 
-// ===================================================
-// 🧩 Middlewares
+// =======================================================================
+// MIDDLEWARES
+// =======================================================================
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
-    c.RoutePrefix = "swagger"; // acessa em /swagger
+    c.RoutePrefix = "swagger";
 });
 
-// ⚠️ NÃO usar UseHttpsRedirection() no Railway
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-// ===================================================
-// ✅ Logs de inicialização
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine($"🚀 Aplicação escutando em: 0.0.0.0:{port}");
-Console.ResetColor();
-
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine("🌐 Servidor iniciado com sucesso!");
-Console.WriteLine($"📄 Swagger: https://api-barbearia-portifolio-production.up.railway.app/swagger");
-Console.WriteLine($"🧩 JSON:    https://api-barbearia-portifolio-production.up.railway.app/swagger/v1/swagger.json");
-Console.ResetColor();
 
 app.Run();

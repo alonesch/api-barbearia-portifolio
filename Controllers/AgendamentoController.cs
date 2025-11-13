@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace BarbeariaPortifolio.API.Controllers;
 
-[ApiController]
+
 [Route("api/[controller]")]
+[ApiController]
 public class AgendamentoController : ControllerBase
 {
     private readonly IAgendamentoServico _servico;
@@ -16,6 +17,7 @@ public class AgendamentoController : ControllerBase
         _servico = servico;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Listar()
     {
@@ -23,6 +25,7 @@ public class AgendamentoController : ControllerBase
         return Ok(agendamentos);
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> Buscar(int id)
     {
@@ -32,6 +35,7 @@ public class AgendamentoController : ControllerBase
         return Ok(agendamento);
     }
 
+    [Authorize]
     [HttpGet("barbeiro/{id}")]
     public async Task<IActionResult> ListarPorBarbeiro(int id)
     {
@@ -45,13 +49,14 @@ public class AgendamentoController : ControllerBase
 
 
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> Cadastrar([FromBody] AgendamentoDTO dto)
     {
         var novo = await _servico.Cadastrar(dto);
         return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
     }
+    
 
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Atualizar(int id, [FromBody] AgendamentoDTO dto)
     {
@@ -59,6 +64,7 @@ public class AgendamentoController : ControllerBase
         return atualizado ? NoContent() : BadRequest("Erro ao atualizar agendamento.");
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Excluir(int id)
     {

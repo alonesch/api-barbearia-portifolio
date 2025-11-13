@@ -3,7 +3,6 @@ using BarbeariaPortifolio.API.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
-using BarbeariaPortifolio.API.Auth;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -12,12 +11,12 @@ namespace BarbeariaPortifolio.API.Controllers
     public class LoginController : ControllerBase
     {
         private readonly IAuthServico _auth;
-        private readonly JwtOptions _authJwt;
+        private readonly JwtOptions _jwt;
 
         public LoginController(IAuthServico auth, IOptions<JwtOptions> jwt)
         {
             _auth = auth;
-            _authJwt = jwt.Value;
+            _jwt = jwt.Value;
         }
 
         public class LoginRequest
@@ -26,7 +25,6 @@ namespace BarbeariaPortifolio.API.Controllers
             public string Senha { get; set; } = string.Empty;
         }
 
-        // 🔒 Protegido com rate limit
         [EnableRateLimiting("login")]
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -42,7 +40,6 @@ namespace BarbeariaPortifolio.API.Controllers
                 });
             }
 
-            // 🔍 Valida usuário + senha
             var (sucesso, mensagem, usuario) =
                 await _auth.ValidarLogin(request.Usuario, request.Senha);
 
@@ -55,16 +52,12 @@ namespace BarbeariaPortifolio.API.Controllers
                 });
             }
 
-            // 🔑 Gera Access Token
             var accessToken = await _auth.GerarAccessToken(usuario);
 
-            // 🔄 Gera Refresh Token bruto + hash
             var (refreshRaw, refreshHash) = await _auth.GerarRefreshToken();
 
-            // 💾 Salva refresh token no banco
-            await _auth.SalvarRefreshToken(usuario, refreshHash, _authJwt.RefreshTokenDays);
+            await _auth.SalvarRefreshToken(usuario, refreshHash, _jwt.RefreshTokenDays);
 
-            // 📦 Retorno final
             return Ok(new
             {
                 autenticado = true,
@@ -84,4 +77,3 @@ namespace BarbeariaPortifolio.API.Controllers
         }
     }
 }
-

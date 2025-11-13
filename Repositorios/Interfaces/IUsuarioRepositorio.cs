@@ -1,10 +1,11 @@
 ﻿using BarbeariaPortifolio.API.Models;
+using BarbeariaPortifolio.DTOs;
 
 namespace BarbeariaPortifolio.API.Repositorios.Interfaces
 {
     public interface IUsuarioRepositorio
     {
-        Task<IEnumerable<Usuario>> ListarTodos();
+        Task<IEnumerable<UsuarioDTO>> ListarTodos();
         Task<Usuario?> BuscarPorId(int id);
         Task<Usuario?> BuscarPorNome(string nomeUsuario);
         Task<Usuario> Cadastrar(Usuario usuario);

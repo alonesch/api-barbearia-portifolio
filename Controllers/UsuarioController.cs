@@ -1,5 +1,6 @@
 ﻿using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -16,10 +17,12 @@ namespace BarbeariaPortifolio.API.Controllers
             _servico = servico;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> ListarTodos()
             => Ok(await _servico.ListarTodos());
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> BuscarPorId(int id)
         {
@@ -30,6 +33,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(usuario);
         }
 
+        
         [HttpPost]
         public async Task<IActionResult> Cadastrar(Usuario usuario)
         {
@@ -37,6 +41,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return CreatedAtAction(nameof(BuscarPorId), new { id = novo.Id }, novo);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, Usuario usuario)
         {
@@ -46,6 +51,7 @@ namespace BarbeariaPortifolio.API.Controllers
                 : BadRequest("Ids não coincidem.");
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)
         {

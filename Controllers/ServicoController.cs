@@ -1,12 +1,14 @@
-﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
-using BarbeariaPortifolio.API.Models;
+﻿using BarbeariaPortifolio.API.Models;
+using BarbeariaPortifolio.API.Servicos.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
 namespace BarbeariaPortifolio.API.Controllers
 {
-    [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
+    [ApiController]
     public class ServicoController : ControllerBase
     {
         private readonly IServicoServico _servicoServico;
@@ -32,6 +34,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(servico);
         }
 
+        
         [HttpPost]
         public async Task<IActionResult> Cadastrar (Servico servico)
         {
@@ -39,6 +42,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
         }
 
+        
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar (int id, Servico servico)
         {
@@ -48,6 +52,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok("Servico atualizado com sucesso.");
         }
 
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir (int id)
         {
