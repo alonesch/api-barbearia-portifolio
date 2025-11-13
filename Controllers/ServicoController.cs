@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
-    [Authorize]
+    
     [Route("api/[controller]")]
     [ApiController]
     public class ServicoController : ControllerBase
@@ -34,7 +34,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(servico);
         }
 
-        
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Cadastrar (Servico servico)
         {
@@ -42,7 +42,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
         }
 
-        
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar (int id, Servico servico)
         {
@@ -52,7 +52,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok("Servico atualizado com sucesso.");
         }
 
-        
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir (int id)
         {
