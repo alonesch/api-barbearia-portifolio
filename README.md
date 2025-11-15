@@ -1,5 +1,5 @@
 #  API — Barbearia Portifolio  
-Back-end desenvolvido em .NET 8 + MySQL para o sistema de agendamento da barbearia.
+Back-end desenvolvido em .NET 9 + MySQL para o sistema de agendamento da barbearia.
 
 ##  Visão Geral
 Esta API foi construída para gerenciar todo o fluxo de agendamentos de uma barbearia, incluindo clientes, barbeiros, serviços, autenticação e painel administrativo.  
