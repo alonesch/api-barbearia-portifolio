@@ -7,16 +7,16 @@ namespace BarbeariaPortifolio.API.Repositorios
 {
     public class AgendamentoRepositorio : IAgendamentoRepositorio
     {
-        private readonly DataContext _banco;
+        private readonly DataContext _repositorio;
 
-        public AgendamentoRepositorio(DataContext banco)
+        public AgendamentoRepositorio(DataContext repositorio)
         {
-            _banco = banco;
+            _repositorio = repositorio;
         }
 
         public async Task<IEnumerable<Agendamento>> ListarTodos()
         {
-            return await _banco.Agendamentos
+            return await _repositorio.Agendamentos
                 .Include(a => a.Cliente)
                 .Include(a => a.Barbeiro)
                 .Include(a => a.AgendamentoServicos)
@@ -27,7 +27,7 @@ namespace BarbeariaPortifolio.API.Repositorios
 
         public async Task<Agendamento?> BuscarPorId(int id)
         {
-            return await _banco.Agendamentos
+            return await _repositorio.Agendamentos
                 .Include(a => a.Cliente)
                 .Include(a => a.Barbeiro)
                 .Include(a => a.AgendamentoServicos)
@@ -37,7 +37,7 @@ namespace BarbeariaPortifolio.API.Repositorios
 
         public async Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId)
         {
-            return await _banco.Agendamentos
+            return await _repositorio.Agendamentos
                 .Where(a => a.BarbeiroId == barbeiroId)
                 .Include(a => a.Cliente)
                 .Include(a => a.Barbeiro)
@@ -49,31 +49,31 @@ namespace BarbeariaPortifolio.API.Repositorios
 
         public async Task<Agendamento> Cadastrar(Agendamento agendamento)
         {
-            _banco.Agendamentos.Add(agendamento);
-            await _banco.SaveChangesAsync();
+            _repositorio.Agendamentos.Add(agendamento);
+            await _repositorio.SaveChangesAsync();
             return agendamento;
         }
 
         public async Task<bool> Atualizar(Agendamento agendamento)
         {
-            _banco.Agendamentos.Update(agendamento);
-            await _banco.SaveChangesAsync();
+            _repositorio.Agendamentos.Update(agendamento);
+            await _repositorio.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> Excluir(int id)
         {
-            var agendamento = await _banco.Agendamentos.FindAsync(id);
+            var agendamento = await _repositorio.Agendamentos.FindAsync(id);
             if (agendamento == null) return false;
 
-            _banco.Agendamentos.Remove(agendamento);
-            await _banco.SaveChangesAsync();
+            _repositorio.Agendamentos.Remove(agendamento);
+            await _repositorio.SaveChangesAsync();
             return true;
         }
 
         public async Task<Cliente> BuscarOuCriarCliente(string nome, string cpf, string telefone)
         {
-            var cliente = await _banco.Clientes
+            var cliente = await _repositorio.Clientes
                 .FirstOrDefaultAsync(c => c.Telefone == telefone);
 
             if (cliente != null)
@@ -86,16 +86,28 @@ namespace BarbeariaPortifolio.API.Repositorios
                 Telefone = telefone
             };
 
-            _banco.Clientes.Add(cliente);
-            await _banco.SaveChangesAsync();
+            _repositorio.Clientes.Add(cliente);
+            await _repositorio.SaveChangesAsync();
 
             return cliente;
         }
 
         public async Task CadastrarAgendamentoServico(AgendamentoServico item)
         {
-            _banco.AgendamentoServicos.Add(item);
-            await _banco.SaveChangesAsync();
+            _repositorio.AgendamentoServicos.Add(item);
+            await _repositorio.SaveChangesAsync();
+        }
+
+        public async Task <Agendamento?> BuscarStatusId(int id)
+        {
+            return await _repositorio.Agendamentos
+                .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
+        public async Task AlterarStatus(Agendamento agendamento)
+        {
+            _repositorio.Agendamentos.Update(agendamento);
+            await _repositorio.SaveChangesAsync();
         }
     }
 }

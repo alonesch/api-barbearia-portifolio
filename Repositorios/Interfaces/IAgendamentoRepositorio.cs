@@ -14,5 +14,8 @@ namespace BarbeariaPortifolio.API.Repositorios.Interfaces
 
         Task<Cliente> BuscarOuCriarCliente(string nome, string cpf, string telefone);
         Task CadastrarAgendamentoServico(AgendamentoServico item);
+
+        Task<Agendamento?> BuscarStatusId(int id);
+        Task AlterarStatus(Agendamento agendamento);
     }
 }

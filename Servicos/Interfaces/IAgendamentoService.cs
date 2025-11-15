@@ -1,4 +1,5 @@
-﻿using BarbeariaPortifolio.DTOs;
+﻿using BarbeariaPortfolio.API.DTOs;
+using BarbeariaPortifolio.DTOs;
 
 namespace BarbeariaPortifolio.API.Servicos.Interfaces
 {
@@ -10,5 +11,6 @@ namespace BarbeariaPortifolio.API.Servicos.Interfaces
         Task<AgendamentoDTO> Cadastrar(AgendamentoDTO dto);
         Task<bool> Atualizar(int id, AgendamentoDTO dto);
         Task<bool> Excluir(int id);
+        Task<bool> AlterarStatus(int id, int novoStatus);
     }
 }

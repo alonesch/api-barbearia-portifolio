@@ -2,6 +2,7 @@
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using BarbeariaPortfolio.API.DTOs;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -69,7 +70,21 @@ namespace BarbeariaPortifolio.API.Controllers
                 : NotFound("Agendamento não encontrado.");
         }
 
-        
+        [Authorize]
+        [HttpPatch("status/{id}")]
+        public async Task<IActionResult> AlterarStatus(int id, [FromBody] StatusDTO dto)
+        {
+            var alterado = await _servico.AlterarStatus(id, dto.Status);
+            if (!alterado)
+                return NotFound("Agendamento não encontrado.");
+
+            return Ok("Status atualizado com sucesso.");
+                
+        }
+
+
+
+
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)

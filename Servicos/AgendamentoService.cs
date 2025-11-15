@@ -1,4 +1,5 @@
-﻿using BarbeariaPortifolio.API.Models;
+﻿using BarbeariaPortfolio.API.DTOs;
+using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.DTOs;
@@ -93,6 +94,19 @@ namespace BarbeariaPortifolio.API.Servicos
             agendamento.Observacao = dto.Observacao;
 
             return await _repositorio.Atualizar(agendamento);
+        }
+
+        public async Task<bool> AlterarStatus(int id, int novoStatus)
+        {
+            var agendamento = await _repositorio.BuscarStatusId(id);
+
+            if (agendamento == null)
+                return false;
+
+            agendamento.Status = novoStatus;
+
+            await _repositorio.AlterarStatus(agendamento);
+            return true;
         }
 
         public async Task<bool> Excluir(int id)
