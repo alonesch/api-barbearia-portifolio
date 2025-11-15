@@ -19,7 +19,6 @@ namespace BarbeariaPortifolio.API.Models
 
         public bool Ativo { get; set; } = true;                    
 
-        public int? BarbeiroId { get; set; }                       
-        public Barbeiro? Barbeiro { get; set; }                    
+                  
     }
 }

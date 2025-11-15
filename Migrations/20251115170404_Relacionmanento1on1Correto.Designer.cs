@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BarbeariaPortfolio.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20251110005112_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251115170404_Relacionmanento1on1Correto")]
+    partial class Relacionmanento1on1Correto
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,25 @@ namespace BarbeariaPortfolio.API.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Agendamento", b =>
+            modelBuilder.Entity("AgendamentoServico", b =>
+                {
+                    b.Property<int>("AgendamentoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServicoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("AgendamentoId", "ServicoId");
+
+                    b.HasIndex("ServicoId");
+
+                    b.ToTable("AgendamentoServicos");
+                });
+
+            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Agendamento", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -40,12 +58,15 @@ namespace BarbeariaPortfolio.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("DataHora")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime");
 
                     b.Property<DateTime>("DataRegistro")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValue(new DateTime(2025, 11, 10, 0, 51, 12, 408, DateTimeKind.Utc).AddTicks(7941));
+                        .HasColumnType("datetime")
+                        .HasDefaultValue(new DateTime(2025, 11, 15, 17, 4, 3, 151, DateTimeKind.Utc).AddTicks(9040));
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
@@ -59,29 +80,6 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.HasIndex("ClienteId");
 
                     b.ToTable("Agendamento");
-                });
-
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.AgendamentoServico", b =>
-                {
-                    b.Property<int>("AgendamentoId")
-                        .HasColumnType("int")
-                        .HasColumnOrder(0);
-
-                    b.Property<int>("ServicoId")
-                        .HasColumnType("int")
-                        .HasColumnOrder(1);
-
-                    b.Property<string>("Observacao")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("Quantidade")
-                        .HasColumnType("int");
-
-                    b.HasKey("AgendamentoId", "ServicoId");
-
-                    b.HasIndex("ServicoId");
-
-                    b.ToTable("AgendamentoServico");
                 });
 
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Barbeiro", b =>
@@ -110,35 +108,6 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.ToTable("Barbeiro");
                 });
 
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Cliente", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("Cpf")
-                        .HasColumnType("varchar(15)");
-
-                    b.Property<DateTime?>("DataCadastro")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValue(new DateTime(2025, 11, 10, 0, 51, 12, 408, DateTimeKind.Utc).AddTicks(7381));
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<string>("Telefone")
-                        .IsRequired()
-                        .HasColumnType("varchar(15)");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("Cliente");
-                });
-
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -147,19 +116,18 @@ namespace BarbeariaPortfolio.API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAtUtc")
+                    b.Property<DateTime>("CriadoEm")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime>("ExpiresAtUtc")
+                    b.Property<DateTime>("ExpiraEm")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<bool>("Revoked")
+                    b.Property<bool>("Revogado")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
@@ -173,11 +141,11 @@ namespace BarbeariaPortfolio.API.Migrations
 
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Servico", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ID"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("NomeServico")
                         .IsRequired()
@@ -186,7 +154,7 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Property<decimal>("Preco")
                         .HasColumnType("decimal(10,2)");
 
-                    b.HasKey("ID");
+                    b.HasKey("Id");
 
                     b.ToTable("Servico");
                 });
@@ -202,20 +170,23 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("BarbeiroId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Cargo")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("NomeCompleto")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("NomeUsuario")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Senha")
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SenhaHash")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -224,28 +195,38 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("Agendamento", b =>
+            modelBuilder.Entity("Cliente", b =>
                 {
-                    b.HasOne("BarbeariaPortifolio.API.Models.Barbeiro", "Barbeiro")
-                        .WithMany("Agendamentos")
-                        .HasForeignKey("BarbeiroId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.HasOne("BarbeariaPortifolio.API.Models.Cliente", "Cliente")
-                        .WithMany("Agendamentos")
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Navigation("Barbeiro");
+                    b.Property<string>("Cpf")
+                        .HasColumnType("varchar(15)");
 
-                    b.Navigation("Cliente");
+                    b.Property<DateTime>("DataCadastro")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValue(new DateTime(2025, 11, 15, 17, 4, 3, 151, DateTimeKind.Utc).AddTicks(8453));
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("Telefone")
+                        .IsRequired()
+                        .HasColumnType("varchar(15)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cliente");
                 });
 
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.AgendamentoServico", b =>
+            modelBuilder.Entity("AgendamentoServico", b =>
                 {
-                    b.HasOne("Agendamento", "Agendamento")
+                    b.HasOne("BarbeariaPortifolio.API.Models.Agendamento", "Agendamento")
                         .WithMany("AgendamentoServicos")
                         .HasForeignKey("AgendamentoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -262,12 +243,31 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Navigation("Servico");
                 });
 
+            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Agendamento", b =>
+                {
+                    b.HasOne("BarbeariaPortifolio.API.Models.Barbeiro", "Barbeiro")
+                        .WithMany("Agendamentos")
+                        .HasForeignKey("BarbeiroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cliente", "Cliente")
+                        .WithMany("Agendamentos")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Barbeiro");
+
+                    b.Navigation("Cliente");
+                });
+
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Barbeiro", b =>
                 {
                     b.HasOne("BarbeariaPortifolio.API.Models.Usuario", "Usuario")
-                        .WithOne("Barbeiro")
+                        .WithOne()
                         .HasForeignKey("BarbeariaPortifolio.API.Models.Barbeiro", "UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Usuario");
                 });
@@ -283,7 +283,7 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("Agendamento", b =>
+            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Agendamento", b =>
                 {
                     b.Navigation("AgendamentoServicos");
                 });
@@ -293,19 +293,14 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Navigation("Agendamentos");
                 });
 
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Cliente", b =>
-                {
-                    b.Navigation("Agendamentos");
-                });
-
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Servico", b =>
                 {
                     b.Navigation("AgendamentoServicos");
                 });
 
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Usuario", b =>
+            modelBuilder.Entity("Cliente", b =>
                 {
-                    b.Navigation("Barbeiro");
+                    b.Navigation("Agendamentos");
                 });
 #pragma warning restore 612, 618
         }

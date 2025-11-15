@@ -16,19 +16,19 @@ namespace BarbeariaPortifolio.API.Repositorios
         }
 
         
-        public async Task<IEnumerable<UsuarioDTO>> ListarTodos()
-        {
-            return await _banco.Usuarios
-                .Select(u => new UsuarioDTO
-                {
-                    Id = u.Id,
-                    NomeUsuario = u.NomeUsuario,
-                    Role = u.Role,
-                    BarbeiroId = u.Barbeiro != null ? u.Barbeiro.Id : null
-                })
-                .AsNoTracking()
-                .ToListAsync();
-        }
+        //public async Task<IEnumerable<UsuarioDTO>> ListarTodos()
+        //{
+        //    return await _banco.Usuarios
+        //        .Select(u => new UsuarioDTO
+        //        {
+        //            Id = u.Id,
+        //            NomeUsuario = u.NomeUsuario,
+        //            Role = u.Role,
+        //            BarbeiroId = u.Id != null ? u.Id.Id : null
+        //        })
+        //        .AsNoTracking()
+        //        .ToListAsync();
+        //}
 
         
         public async Task<Usuario?> BuscarPorId(int id)

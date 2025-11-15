@@ -22,6 +22,24 @@ namespace BarbeariaPortfolio.API.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("AgendamentoServico", b =>
+                {
+                    b.Property<int>("AgendamentoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServicoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("AgendamentoId", "ServicoId");
+
+                    b.HasIndex("ServicoId");
+
+                    b.ToTable("AgendamentoServicos");
+                });
+
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Agendamento", b =>
                 {
                     b.Property<int>("Id")
@@ -42,7 +60,7 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Property<DateTime>("DataRegistro")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
-                        .HasDefaultValue(new DateTime(2025, 11, 13, 3, 25, 49, 375, DateTimeKind.Utc).AddTicks(3705));
+                        .HasDefaultValue(new DateTime(2025, 11, 15, 17, 4, 3, 151, DateTimeKind.Utc).AddTicks(9040));
 
                     b.Property<string>("Observacao")
                         .HasColumnType("varchar(255)");
@@ -59,29 +77,6 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.HasIndex("ClienteId");
 
                     b.ToTable("Agendamento");
-                });
-
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.AgendamentoServico", b =>
-                {
-                    b.Property<int>("AgendamentoId")
-                        .HasColumnType("int")
-                        .HasColumnOrder(0);
-
-                    b.Property<int>("ServicoId")
-                        .HasColumnType("int")
-                        .HasColumnOrder(1);
-
-                    b.Property<string>("Observacao")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("Quantidade")
-                        .HasColumnType("int");
-
-                    b.HasKey("AgendamentoId", "ServicoId");
-
-                    b.HasIndex("ServicoId");
-
-                    b.ToTable("AgendamentoServico");
                 });
 
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Barbeiro", b =>
@@ -172,9 +167,6 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("BarbeiroId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Cargo")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -214,7 +206,7 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Property<DateTime>("DataCadastro")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
-                        .HasDefaultValue(new DateTime(2025, 11, 13, 3, 25, 49, 375, DateTimeKind.Utc).AddTicks(3105));
+                        .HasDefaultValue(new DateTime(2025, 11, 15, 17, 4, 3, 151, DateTimeKind.Utc).AddTicks(8453));
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -227,6 +219,25 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Cliente");
+                });
+
+            modelBuilder.Entity("AgendamentoServico", b =>
+                {
+                    b.HasOne("BarbeariaPortifolio.API.Models.Agendamento", "Agendamento")
+                        .WithMany("AgendamentoServicos")
+                        .HasForeignKey("AgendamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BarbeariaPortifolio.API.Models.Servico", "Servico")
+                        .WithMany("AgendamentoServicos")
+                        .HasForeignKey("ServicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Agendamento");
+
+                    b.Navigation("Servico");
                 });
 
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Agendamento", b =>
@@ -248,29 +259,10 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Navigation("Cliente");
                 });
 
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.AgendamentoServico", b =>
-                {
-                    b.HasOne("BarbeariaPortifolio.API.Models.Agendamento", "Agendamento")
-                        .WithMany("AgendamentoServicos")
-                        .HasForeignKey("AgendamentoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BarbeariaPortifolio.API.Models.Servico", "Servico")
-                        .WithMany("AgendamentoServicos")
-                        .HasForeignKey("ServicoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Agendamento");
-
-                    b.Navigation("Servico");
-                });
-
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Barbeiro", b =>
                 {
                     b.HasOne("BarbeariaPortifolio.API.Models.Usuario", "Usuario")
-                        .WithOne("Barbeiro")
+                        .WithOne()
                         .HasForeignKey("BarbeariaPortifolio.API.Models.Barbeiro", "UsuarioId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -301,11 +293,6 @@ namespace BarbeariaPortfolio.API.Migrations
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Servico", b =>
                 {
                     b.Navigation("AgendamentoServicos");
-                });
-
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Usuario", b =>
-                {
-                    b.Navigation("Barbeiro");
                 });
 
             modelBuilder.Entity("Cliente", b =>

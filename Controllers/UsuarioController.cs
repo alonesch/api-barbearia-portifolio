@@ -17,10 +17,10 @@ namespace BarbeariaPortifolio.API.Controllers
             _servico = servico;
         }
 
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> ListarTodos()
-            => Ok(await _servico.ListarTodos());
+        //[Authorize]
+        //[HttpGet]
+        //public async Task<IActionResult> ListarTodos()
+        //    => Ok(await _servico.ListarTodos());
 
         [Authorize]
         [HttpGet("{id}")]

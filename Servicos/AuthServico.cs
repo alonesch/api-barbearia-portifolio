@@ -14,9 +14,11 @@ namespace BarbeariaPortifolio.API.Servicos
         private readonly IRefreshTokenRepositorio _refreshTokens;
         private readonly TokenService _tokenService;
         private readonly JwtOptions _jwt;
+        private readonly IBarbeiroRepositorio _barbeiros;
 
         public AuthServico(
             IUsuarioRepositorio usuarios,
+            IBarbeiroRepositorio barbeiros,
             IRefreshTokenRepositorio refreshTokens,
             TokenService tokenService,
             IOptions<JwtOptions> jwt)
@@ -25,6 +27,7 @@ namespace BarbeariaPortifolio.API.Servicos
             _refreshTokens = refreshTokens;
             _tokenService = tokenService;
             _jwt = jwt.Value;
+            _barbeiros = barbeiros;
         }
 
         public async Task<(bool sucesso, string mensagem, Usuario? usuario)> ValidarLogin(string usuario, string senha)
@@ -42,9 +45,10 @@ namespace BarbeariaPortifolio.API.Servicos
 
         public async Task<string> GerarAccessToken(Usuario usuario)
         {
-            var claims = usuario.ToClaims();
+            var barbeiroId = await BuscarBarbeiroId(usuario.Id);
+            var claims =  usuario.ToClaims(barbeiroId);
             return _tokenService.GenerateAccessToken(claims);
-        }
+        }   
 
         public async Task<(string rawToken, string hashToken)> GerarRefreshToken()
         {
@@ -64,7 +68,15 @@ namespace BarbeariaPortifolio.API.Servicos
                 ExpiraEm = DateTime.UtcNow.AddDays(diasExpiracao)
             };
 
+
             await _refreshTokens.Salvar(rt);
+        }
+
+        public async Task<int?> BuscarBarbeiroId (int usuarioId)
+        {
+            var barbeiro = await _barbeiros.BuscarUsuarioId(usuarioId);
+
+            return barbeiro?.Id;
         }
     }
 }

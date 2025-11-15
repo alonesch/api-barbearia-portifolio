@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BarbeariaPortfolio.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Relacionmanento1on1Correto : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,7 @@ namespace BarbeariaPortfolio.API.Migrations
                 name: "Cliente",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Nome = table.Column<string>(type: "varchar(150)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -27,11 +27,11 @@ namespace BarbeariaPortfolio.API.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Telefone = table.Column<string>(type: "varchar(15)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    DataCadastro = table.Column<DateTime>(type: "datetime", nullable: true, defaultValue: new DateTime(2025, 11, 10, 0, 51, 12, 408, DateTimeKind.Utc).AddTicks(7381))
+                    DataCadastro = table.Column<DateTime>(type: "datetime", nullable: false, defaultValue: new DateTime(2025, 11, 15, 17, 4, 3, 151, DateTimeKind.Utc).AddTicks(8453))
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Cliente", x => x.ID);
+                    table.PrimaryKey("PK_Cliente", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -39,7 +39,7 @@ namespace BarbeariaPortfolio.API.Migrations
                 name: "Servico",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     NomeServico = table.Column<string>(type: "varchar(100)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -47,7 +47,7 @@ namespace BarbeariaPortfolio.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Servico", x => x.ID);
+                    table.PrimaryKey("PK_Servico", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -59,14 +59,15 @@ namespace BarbeariaPortfolio.API.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     NomeUsuario = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Senha = table.Column<string>(type: "longtext", nullable: false)
+                    SenhaHash = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    NomeCompleto = table.Column<string>(type: "longtext", nullable: true)
+                    NomeCompleto = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Cargo = table.Column<string>(type: "longtext", nullable: true)
+                    Cargo = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Ativo = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    BarbeiroId = table.Column<int>(type: "int", nullable: true)
+                    Role = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Ativo = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -94,7 +95,7 @@ namespace BarbeariaPortfolio.API.Migrations
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -105,11 +106,11 @@ namespace BarbeariaPortfolio.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UsuarioId = table.Column<int>(type: "int", nullable: false),
-                    TokenHash = table.Column<string>(type: "varchar(300)", maxLength: 300, nullable: false)
+                    TokenHash = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ExpiresAtUtc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Revoked = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    ExpiraEm = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Revogado = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CriadoEm = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,9 +132,11 @@ namespace BarbeariaPortfolio.API.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     ClienteId = table.Column<int>(type: "int", nullable: false),
                     BarbeiroId = table.Column<int>(type: "int", nullable: false),
-                    DataHora = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    DataHora = table.Column<DateTime>(type: "datetime", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
-                    DataRegistro = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValue: new DateTime(2025, 11, 10, 0, 51, 12, 408, DateTimeKind.Utc).AddTicks(7941))
+                    DataRegistro = table.Column<DateTime>(type: "datetime", nullable: false, defaultValue: new DateTime(2025, 11, 15, 17, 4, 3, 151, DateTimeKind.Utc).AddTicks(9040)),
+                    Observacao = table.Column<string>(type: "varchar(255)", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -148,35 +151,34 @@ namespace BarbeariaPortfolio.API.Migrations
                         name: "FK_Agendamento_Cliente_ClienteId",
                         column: x => x.ClienteId,
                         principalTable: "Cliente",
-                        principalColumn: "ID",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "AgendamentoServico",
+                name: "AgendamentoServicos",
                 columns: table => new
                 {
                     AgendamentoId = table.Column<int>(type: "int", nullable: false),
                     ServicoId = table.Column<int>(type: "int", nullable: false),
-                    Quantidade = table.Column<int>(type: "int", nullable: false),
-                    Observacao = table.Column<string>(type: "varchar(255)", nullable: true)
+                    Observacao = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AgendamentoServico", x => new { x.AgendamentoId, x.ServicoId });
+                    table.PrimaryKey("PK_AgendamentoServicos", x => new { x.AgendamentoId, x.ServicoId });
                     table.ForeignKey(
-                        name: "FK_AgendamentoServico_Agendamento_AgendamentoId",
+                        name: "FK_AgendamentoServicos_Agendamento_AgendamentoId",
                         column: x => x.AgendamentoId,
                         principalTable: "Agendamento",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AgendamentoServico_Servico_ServicoId",
+                        name: "FK_AgendamentoServicos_Servico_ServicoId",
                         column: x => x.ServicoId,
                         principalTable: "Servico",
-                        principalColumn: "ID",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -192,8 +194,8 @@ namespace BarbeariaPortfolio.API.Migrations
                 column: "ClienteId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AgendamentoServico_ServicoId",
-                table: "AgendamentoServico",
+                name: "IX_AgendamentoServicos_ServicoId",
+                table: "AgendamentoServicos",
                 column: "ServicoId");
 
             migrationBuilder.CreateIndex(
@@ -212,7 +214,7 @@ namespace BarbeariaPortfolio.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AgendamentoServico");
+                name: "AgendamentoServicos");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");

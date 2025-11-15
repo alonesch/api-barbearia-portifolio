@@ -40,6 +40,12 @@ namespace BarbeariaPortifolio.API.Repositorios
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
+        public async Task<Barbeiro?> BuscarUsuarioId(int usuarioId)
+        {
+            return await _banco.Barbeiros
+                .FirstOrDefaultAsync(b => b.UsuarioId == usuarioId);
+        }
+
         public async Task<Barbeiro?> BuscarPorNome(string nome)
         {
             return await _banco.Barbeiros

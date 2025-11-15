@@ -14,8 +14,8 @@ namespace BarbeariaPortifolio.API.Servicos
             _repositorio = repositorio;
         }
 
-        public async Task<IEnumerable<UsuarioDTO>> ListarTodos()
-            => await _repositorio.ListarTodos();
+        //public async Task<IEnumerable<UsuarioDTO>> ListarTodos()
+        //    => await _repositorio.ListarTodos();
 
         public async Task<Usuario?> BuscarPorId(int id)
             => await _repositorio.BuscarPorId(id);

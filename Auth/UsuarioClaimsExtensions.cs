@@ -1,13 +1,13 @@
-﻿using System.Security.Claims;
-using BarbeariaPortifolio.API.Models;
+﻿using BarbeariaPortifolio.API.Models;
+using System.Security.Claims;
 
 namespace BarbeariaPortifolio.API.Auth
 {
     public static class UsuarioClaimsExtensions
     {
-        public static IEnumerable<Claim> ToClaims(this Usuario user)
+        public static IEnumerable<Claim> ToClaims(this Usuario user, int? barbeiroId)
         {
-            return new List<Claim>
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.NomeUsuario),
@@ -15,6 +15,11 @@ namespace BarbeariaPortifolio.API.Auth
                 new Claim("cargo", user.Cargo ?? ""),
                 new Claim("nomeCompleto", user.NomeCompleto ?? "")
             };
+
+            if (barbeiroId.HasValue)
+                claims.Add(new Claim("barbeiroId", barbeiroId.Value.ToString()));
+
+            return claims;
         }
     }
 }

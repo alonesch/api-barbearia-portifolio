@@ -52,11 +52,14 @@ namespace BarbeariaPortifolio.API.Controllers
                 });
             }
 
+            
             var accessToken = await _auth.GerarAccessToken(usuario);
 
             var (refreshRaw, refreshHash) = await _auth.GerarRefreshToken();
 
             await _auth.SalvarRefreshToken(usuario, refreshHash, _jwt.RefreshTokenDays);
+            
+            var barbeiroId = await _auth.BuscarBarbeiroId(usuario.Id);
 
             return Ok(new
             {
@@ -71,7 +74,8 @@ namespace BarbeariaPortifolio.API.Controllers
                     usuario.NomeCompleto,
                     usuario.Cargo,
                     usuario.Role,
-                    usuario.BarbeiroId
+                    barbeiroId = barbeiroId ?? null,
+                    
                 }
             });
         }

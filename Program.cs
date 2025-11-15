@@ -113,13 +113,27 @@ builder.Services
 // =======================================================================
 // CORS
 // =======================================================================
+
+// PRODUÇÃO
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("prd", policy =>
         policy.WithOrigins("https://portifolio-gabriel-dun.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
+
+// DESENVOLVIMENTO
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("dev", policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
+
 
 // =======================================================================
 // DEPENDENCY INJECTION (REPOS & SERVICES)
@@ -191,7 +205,11 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-app.UseCors("AllowFrontend");
+if (app.Environment.IsDevelopment())
+    app.UseCors("dev");
+else
+    app.UseCors("prd");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
