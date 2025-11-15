@@ -118,7 +118,7 @@ builder.Services
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("prd", policy =>
-        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app/")
+        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
