@@ -127,7 +127,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("dev", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("https://dev-barbearia-gabriel-port.vercel.app/")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
