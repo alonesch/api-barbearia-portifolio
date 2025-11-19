@@ -164,7 +164,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 
-var envApp = Environment.GetEnvironmentVariable("APP_ENVIRONMENT") ?? "Production";
+var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
 if (envApp == "Development")
     app.UseCors("dev");
 else
@@ -187,5 +187,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-Console.WriteLine("API Online ✔");
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"🌍 Ambiente ativo: {envApp}");
+Console.ResetColor();
 app.Run();
