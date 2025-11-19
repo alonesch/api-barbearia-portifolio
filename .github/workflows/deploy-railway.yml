@@ -25,21 +25,25 @@ jobs:
       - name: Build Solution (Release)
         run: dotnet build BarbeariaPortfolio.API.csproj --configuration Release --no-restore
 
-      # ⚠️ Aqui futuramente entra 'dotnet test'
-      # - name: 🧪 Run Tests
+      #  Aqui futuramente entra 'dotnet test'
+      # - name:  Run Tests
       #   run: dotnet test --no-build --verbosity normal
 
-      - name: 📎 Install Railway CLI
+      - name:  Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: 🚀 Deploy to Railway (DEV or PROD)
+      - name:  Authenticate with Railway
+        run: railway login --token ${{ secrets.RAILWAY_TOKEN }}
+
+      - name:  Deploy to Railway (DEV or PROD)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
             echo "Deploying to DEV environment..."
-            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_DEV }} 
+            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_DEV }}
           else
             echo "Deploying to PROD environment..."
             railway up --service ${{ secrets.RAILWAY_SERVICE_ID_PROD }}
           fi
+
