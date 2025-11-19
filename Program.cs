@@ -14,7 +14,7 @@ DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // =======================================================================
-// CONFIGURAÇÕES INICIAIS
+// SWAGGER
 // =======================================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -53,7 +53,7 @@ builder.Services.AddSingleton<TokenService>();
 builder.Services.AddAuthorization();
 
 // =======================================================================
-// BANCO DE DADOS
+// DATABASE
 // =======================================================================
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -70,8 +70,9 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+
 // =======================================================================
-// JWT
+// JWT AUTH
 // =======================================================================
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
@@ -108,6 +109,7 @@ builder.Services
         };
     });
 
+
 // =======================================================================
 // CORS
 // =======================================================================
@@ -115,8 +117,7 @@ builder.Services.AddCors(options =>
 {
     // DEV
     options.AddPolicy("dev", policy =>
-        policy
-            .WithOrigins(
+        policy.WithOrigins(
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "https://barbearia-gabriel-port-git-dev-alonesch.vercel.app",
@@ -129,36 +130,32 @@ builder.Services.AddCors(options =>
 
     // PRD
     options.AddPolicy("prd", policy =>
-        policy
-            .WithOrigins("https://barbearia-gabriel-port.vercel.app")
+        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
             .AllowAnyHeader()
             .AllowAnyMethod()
     );
 });
 
+
 // =======================================================================
-// DEPENDENCY INJECTION (REPOS & SERVICES)
+// DEPENDENCY INJECTION
 // =======================================================================
 builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
 builder.Services.AddScoped<IClienteServico, ClienteServico>();
-
 builder.Services.AddScoped<IServicoRepositorio, ServicoRepositorio>();
 builder.Services.AddScoped<IServicoServico, ServicoServico>();
-
 builder.Services.AddScoped<IAgendamentoRepositorio, AgendamentoRepositorio>();
 builder.Services.AddScoped<IAgendamentoServico, AgendamentoService>();
-
 builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
 builder.Services.AddScoped<IBarbeiroServico, BarbeiroServico>();
-
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IUsuarioServico, UsuarioServico>();
-
 builder.Services.AddScoped<IAuthServico, AuthServico>();
 builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
 
+
 // =======================================================================
-// KESTREL CONFIG (RAILWAY)
+// KESTREL (RAILWAY)
 // =======================================================================
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 
@@ -169,13 +166,15 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.WebHost.UseSetting("AllowedHosts", "*");
 
+
 // =======================================================================
-// BUILD
+// BUILD APP
 // =======================================================================
 var app = builder.Build();
 
+
 // =======================================================================
-// MIGRATIONS AUTOMÁTICAS
+// AUTO MIGRATE
 // =======================================================================
 using (var scope = app.Services.CreateScope())
 {
@@ -190,15 +189,12 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+
 // =======================================================================
 // MIDDLEWARES
 // =======================================================================
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
-    c.RoutePrefix = "swagger";
-});
+app.UseSwaggerUI();
 
 if (app.Environment.IsProduction())
     app.UseCors("prd");
@@ -211,7 +207,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine("API Online. Sem erros aparentes (Consultar logs!)");
+Console.WriteLine("API Online ✔");
 Console.ResetColor();
 
 app.Run();
