@@ -18,35 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 // =======================================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new() { Title = "API Barbearia Portifolio", Version = "v1" });
-
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Digite: Bearer {seu_token}"
-    });
-
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
+builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
@@ -59,12 +31,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    Console.ForegroundColor = ConsoleColor.Yellow;
     Console.WriteLine("⚠️ Nenhuma connection string encontrada. Usando fallback...");
-    Console.ResetColor();
-
     connectionString =
-        "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
+        "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;";
 }
 
 builder.Services.AddDbContext<DataContext>(options =>
@@ -72,14 +41,13 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 
 // =======================================================================
-// JWT AUTH
+// JWT
 // =======================================================================
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
 
 if (string.IsNullOrWhiteSpace(keyValue))
 {
-    Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine("❌ Nenhuma chave JWT encontrada!");
     Environment.Exit(1);
 }
@@ -111,26 +79,25 @@ builder.Services
 
 
 // =======================================================================
-// CORS (CORRETO E SEM DUPLICAÇÕES)
+// CORS – AQUI ESTÁ A PARTE MAIS IMPORTANTE
 // =======================================================================
 builder.Services.AddCors(options =>
 {
-    // DEV
+    // DEV = qualquer subdomínio Vercel
     options.AddPolicy("dev", policy =>
-        policy.WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "https://barbearia-gabriel-port-git-dev-alonesch.vercel.app",
-                "https://dev-barbearia-gabriel-port.vercel.app"
-            )
+        policy
+            .SetIsOriginAllowed(origin =>
+                origin.Contains("localhost") ||
+                origin.Contains("vercel.app"))
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
     );
 
-    // PRODUÇÃO
+    // PRD = domínio fixo
     options.AddPolicy("prd", policy =>
-        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
+        policy
+            .WithOrigins("https://barbearia-gabriel-port.vercel.app")
             .AllowAnyHeader()
             .AllowAnyMethod()
     );
@@ -155,7 +122,7 @@ builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
 
 
 // =======================================================================
-// KESTREL (RAILWAY)
+// KESTREL (PORTA RAILWAY)
 // =======================================================================
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 
@@ -168,13 +135,13 @@ builder.WebHost.UseSetting("AllowedHosts", "*");
 
 
 // =======================================================================
-// BUILD
+// BUILD APP
 // =======================================================================
 var app = builder.Build();
 
 
 // =======================================================================
-// MIGRATIONS AUTOMÁTICAS
+// MIGRATIONS AUTO
 // =======================================================================
 using (var scope = app.Services.CreateScope())
 {
@@ -191,16 +158,11 @@ using (var scope = app.Services.CreateScope())
 
 
 // =======================================================================
-// MIDDLEWARE ORDER — CORRETO
+// MIDDLEWARES
 // =======================================================================
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
-    c.RoutePrefix = "swagger";
-});
+app.UseSwaggerUI();
 
-// CORS — AGORA ESTÁ NO LOCAL EXATO
 if (app.Environment.IsProduction())
     app.UseCors("prd");
 else
@@ -211,8 +173,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-Console.ForegroundColor = ConsoleColor.Green;
 Console.WriteLine("API Online ✔");
-Console.ResetColor();
-
 app.Run();
