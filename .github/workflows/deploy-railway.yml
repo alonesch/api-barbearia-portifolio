@@ -25,7 +25,7 @@ jobs:
       - name:  Build Solution (Release)
         run: dotnet build BarbeariaPortfolio.API.csproj --configuration Release --no-restore
 
-      # Futuro: Tests
+      # Futuro: Testes
       # - name:  Run Tests
       #   run: dotnet test --no-build --verbosity normal
 
