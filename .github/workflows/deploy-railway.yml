@@ -20,10 +20,10 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name:  Restore Dependencies
-        run: dotnet restore BarbeariaPortifolio.API.csproj
+        run: dotnet restore BarbeariaPortfolio.API.csproj
 
       - name:  Build Solution (Release)
-        run: dotnet build BarbeariaPortifolio.API.csproj --configuration Release --no-restore
+        run: dotnet build BarbeariaPortfolio.API.csproj --configuration Release --no-restore
 
       # Futuro: Tests
       # - name:  Run Tests
