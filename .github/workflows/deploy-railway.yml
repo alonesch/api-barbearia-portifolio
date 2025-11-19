@@ -1,0 +1,45 @@
+name: Deploy API to Railway
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build Solution (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      # ⚠️ Aqui futuramente entra 'dotnet test'
+      # - name: 🧪 Run Tests
+      #   run: dotnet test --no-build --verbosity normal
+
+      - name: 📎 Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: 🚀 Deploy to Railway (DEV or PROD)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
+            echo "Deploying to DEV environment..."
+            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_DEV }} --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          else
+            echo "Deploying to PROD environment..."
+            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_PROD }} --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          fi
