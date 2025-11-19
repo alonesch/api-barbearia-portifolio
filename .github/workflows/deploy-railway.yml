@@ -11,34 +11,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name:  Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name:  Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
 
-      - name: Restore Dependencies
-        run: dotnet restore BarbeariaPortfolio.API.csproj
+      - name:  Restore Dependencies
+        run: dotnet restore BarbeariaPortifolio.API.csproj
 
-      - name: Build Solution (Release)
-        run: dotnet build BarbeariaPortfolio.API.csproj --configuration Release --no-restore
+      - name:  Build Solution (Release)
+        run: dotnet build BarbeariaPortifolio.API.csproj --configuration Release --no-restore
 
-      #  Aqui futuramente entra 'dotnet test'
+      # Futuro: Tests
       # - name:  Run Tests
       #   run: dotnet test --no-build --verbosity normal
 
-      - name: 📎 Install Railway CLI
+      - name:  Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: 🔑 Set Railway Token
-        run: |
-          export RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}
-
-      - name: 🚀 Deploy to Railway (DEV or PROD)
+      - name:  Deploy to Railway (DEV or PROD)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
             echo "Deploying to DEV environment..."
@@ -47,5 +44,3 @@ jobs:
             echo "Deploying to PROD environment..."
             railway up --service ${{ secrets.RAILWAY_SERVICE_ID_PROD }}
           fi
-
-
