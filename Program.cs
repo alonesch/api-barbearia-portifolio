@@ -79,27 +79,28 @@ builder.Services
 
 
 // =======================================================================
-// CORS – AQUI ESTÁ A PARTE MAIS IMPORTANTE
+// CORS DEFINITIVO (PROFISSIONAL)
 // =======================================================================
 builder.Services.AddCors(options =>
 {
-    // DEV = qualquer subdomínio Vercel
-    options.AddPolicy("dev", policy =>
-        policy
-            .SetIsOriginAllowed(origin =>
-                origin.Contains("localhost") ||
-                origin.Contains("vercel.app"))
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
+    // PRODUÇÃO – apenas domínio oficial
+    options.AddPolicy("prd", policy =>
+        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
     );
 
-    // PRD = domínio fixo
-    options.AddPolicy("prd", policy =>
-        policy
-            .WithOrigins("https://barbearia-gabriel-port.vercel.app")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
+    // DESENVOLVIMENTO / PREVIEW – frontend dev e localhost liberados
+    options.AddPolicy("dev", policy =>
+        policy.WithOrigins(
+                "https://dev-barbearia-gabriel-port.vercel.app",
+                "http://localhost:5173",
+                "http://localhost:3000"
+            )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
     );
 });
 
@@ -139,7 +140,6 @@ builder.WebHost.UseSetting("AllowedHosts", "*");
 // =======================================================================
 var app = builder.Build();
 
-
 // =======================================================================
 // MIGRATIONS AUTO
 // =======================================================================
@@ -163,15 +163,31 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-if (app.Environment.IsProduction())
-    app.UseCors("prd");
-else
+
+var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+if (envApp == "Development")
     app.UseCors("dev");
+else
+    app.UseCors("prd");
+
+// 🔥 Fix global do preflight (sem exigir auth)
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.StatusCode = 200;
+        await context.Response.CompleteAsync();
+        return;
+    }
+    await next.Invoke();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-Console.WriteLine("API Online ✔");
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"🌍 Ambiente ativo: {envApp}");
+Console.ResetColor();
 app.Run();
