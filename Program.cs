@@ -117,30 +117,37 @@ builder.Services
 // PRODUÇÃO
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("prd", policy =>
+    options.AddPolicy("prd", policy => 
         policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 
-// DESENVOLVIMENTO
-builder.Services.AddCors(options =>
-{
     options.AddPolicy("dev", policy =>
+
         policy.WithOrigins("https://dev-barbearia-gabriel-port.vercel.app")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 });
 
+var app = builder.Build();
+
+if (app.Environment.IsProduction())
+{
+    app.UseCors("prd");
+}
+else
+{
+    app.UseCors("dev");
+}
 
 
-// =======================================================================
-// DEPENDENCY INJECTION (REPOS & SERVICES)
-// =======================================================================
 
-// CLIENTE
-builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
+    // =======================================================================
+    // DEPENDENCY INJECTION (REPOS & SERVICES)
+    // =======================================================================
+
+    // CLIENTE
+    builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
 builder.Services.AddScoped<IClienteServico, ClienteServico>();
 
 // SERVIÇO
