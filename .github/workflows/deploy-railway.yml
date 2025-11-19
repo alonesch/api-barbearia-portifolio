@@ -1,0 +1,45 @@
+name: Deploy API to Railway
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name:  Checkout Repository
+        uses: actions/checkout@v4
+
+      - name:  Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name:  Restore Dependencies
+        run: dotnet restore BarbeariaPortfolio.API.csproj
+
+      - name:  Build Solution (Release)
+        run: dotnet build BarbeariaPortfolio.API.csproj --configuration Release --no-restore
+
+      # Futuro: Testes
+      # - name:  Run Tests
+      #   run: dotnet test --no-build --verbosity normal
+
+      - name:  Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: 🚀 Deploy to Railway (DEV or PROD)
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
+            echo "Deploying to DEV environment..."
+            export RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN_DEV }}
+            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_DEV }} --environment ${{ secrets.RAILWAY_ENV_ID_DEV }}
+          else
+            echo "Deploying to PROD environment..."
+            export RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN_PROD }}
+            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_PROD }} --environment ${{ secrets.RAILWAY_ENV_ID_PROD }}
+          fi
