@@ -111,7 +111,7 @@ builder.Services
 
 
 // =======================================================================
-// CORS
+// CORS (CORRETO E SEM DUPLICAÇÕES)
 // =======================================================================
 builder.Services.AddCors(options =>
 {
@@ -128,7 +128,7 @@ builder.Services.AddCors(options =>
             .AllowCredentials()
     );
 
-    // PRD
+    // PRODUÇÃO
     options.AddPolicy("prd", policy =>
         policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
             .AllowAnyHeader()
@@ -168,13 +168,13 @@ builder.WebHost.UseSetting("AllowedHosts", "*");
 
 
 // =======================================================================
-// BUILD APP
+// BUILD
 // =======================================================================
 var app = builder.Build();
 
 
 // =======================================================================
-// AUTO MIGRATE
+// MIGRATIONS AUTOMÁTICAS
 // =======================================================================
 using (var scope = app.Services.CreateScope())
 {
@@ -191,11 +191,16 @@ using (var scope = app.Services.CreateScope())
 
 
 // =======================================================================
-// MIDDLEWARES
+// MIDDLEWARE ORDER — CORRETO
 // =======================================================================
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Barbearia Portifolio v1");
+    c.RoutePrefix = "swagger";
+});
 
+// CORS — AGORA ESTÁ NO LOCAL EXATO
 if (app.Environment.IsProduction())
     app.UseCors("prd");
 else
