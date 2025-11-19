@@ -32,15 +32,14 @@ jobs:
       - name:  Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name:  Deploy to Railway (DEV or PROD)
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      - name: 🚀 Deploy to Railway (DEV or PROD)
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
             echo "Deploying to DEV environment..."
+            export RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN_DEV }}
             railway up --service ${{ secrets.RAILWAY_SERVICE_ID_DEV }} --environment ${{ secrets.RAILWAY_ENV_ID_DEV }}
           else
             echo "Deploying to PROD environment..."
+            export RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN_PROD }}
             railway up --service ${{ secrets.RAILWAY_SERVICE_ID_PROD }} --environment ${{ secrets.RAILWAY_ENV_ID_PROD }}
           fi
