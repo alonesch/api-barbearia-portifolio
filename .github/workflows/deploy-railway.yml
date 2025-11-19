@@ -39,8 +39,8 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
             echo "Deploying to DEV environment..."
-            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_DEV }}
+            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_DEV }} --environment ${{ secrets.RAILWAY_ENV_ID_DEV }}
           else
             echo "Deploying to PROD environment..."
-            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_PROD }}
+            railway up --service ${{ secrets.RAILWAY_SERVICE_ID_PROD }} --environment ${{ secrets.RAILWAY_ENV_ID_PROD }}
           fi
