@@ -55,7 +55,6 @@ builder.Services.AddAuthorization();
 // =======================================================================
 // BANCO DE DADOS
 // =======================================================================
-
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -74,7 +73,6 @@ builder.Services.AddDbContext<DataContext>(options =>
 // =======================================================================
 // JWT
 // =======================================================================
-
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
 
@@ -113,70 +111,54 @@ builder.Services
 // =======================================================================
 // CORS
 // =======================================================================
-
-// DEV
 builder.Services.AddCors(options =>
 {
+    // DEV
     options.AddPolicy("dev", policy =>
         policy
-            .SetIsOriginAllowed(origin =>
-            origin.Contains("localhost") ||
-            origin.Contains("vercel.app"))
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials());
+            .WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "https://barbearia-gabriel-port-git-dev-alonesch.vercel.app",
+                "https://dev-barbearia-gabriel-port.vercel.app"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+    );
 
-//PR
+    // PRD
     options.AddPolicy("prd", policy =>
-        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
-        .AllowAnyHeader()
-        .AllowAnyMethod());
+        policy
+            .WithOrigins("https://barbearia-gabriel-port.vercel.app")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+    );
 });
-
-
-
-if (app.Environment.IsProduction())
-{
-    app.UseCors("prd");
-}
-else
-{
-    app.UseCors("dev");
-}
-
-
 
 // =======================================================================
 // DEPENDENCY INJECTION (REPOS & SERVICES)
 // =======================================================================
-
-// CLIENTE
 builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
 builder.Services.AddScoped<IClienteServico, ClienteServico>();
 
-// SERVIÇO
 builder.Services.AddScoped<IServicoRepositorio, ServicoRepositorio>();
 builder.Services.AddScoped<IServicoServico, ServicoServico>();
 
-// AGENDAMENTO
 builder.Services.AddScoped<IAgendamentoRepositorio, AgendamentoRepositorio>();
 builder.Services.AddScoped<IAgendamentoServico, AgendamentoService>();
 
-// BARBEIRO
 builder.Services.AddScoped<IBarbeiroRepositorio, BarbeiroRepositorio>();
 builder.Services.AddScoped<IBarbeiroServico, BarbeiroServico>();
 
-// USUÁRIO
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IUsuarioServico, UsuarioServico>();
 
-// AUTH
 builder.Services.AddScoped<IAuthServico, AuthServico>();
 builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
 
-
 // =======================================================================
-// KESTREL CONFIG (RAILWAY REQUERIDO)
+// KESTREL CONFIG (RAILWAY)
 // =======================================================================
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 
@@ -187,6 +169,8 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.WebHost.UseSetting("AllowedHosts", "*");
 
+// =======================================================================
+// BUILD
 // =======================================================================
 var app = builder.Build();
 
@@ -216,15 +200,15 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-if (app.Environment.IsDevelopment())
-    app.UseCors("dev");
-else
+if (app.Environment.IsProduction())
     app.UseCors("prd");
+else
+    app.UseCors("dev");
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
 
+app.MapControllers();
 
 Console.ForegroundColor = ConsoleColor.Green;
 Console.WriteLine("API Online. Sem erros aparentes (Consultar logs!)");
