@@ -10,7 +10,7 @@ namespace BarbeariaPortifolio.API.Data
             var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
 
             var connectionString =
-                "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;";
+                "Server=mysqldbbarberprd-production.up.railway.app;Port=3306;Database=railway;User Id=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;SslMode=Preferred;AllowPublicKeyRetrieval=True;";
 
             optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
             return new DataContext(optionsBuilder.Options);
