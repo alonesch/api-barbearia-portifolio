@@ -144,6 +144,14 @@ builder.WebHost.UseSetting("AllowedHosts", "*");
 var app = builder.Build();
 
 // =======================================================================
+// MIDDLEWARES DE ERROS
+// =======================================================================
+
+
+app.UseMiddleware<TratamentoDeErros>();
+
+
+// =======================================================================
 // MIGRATIONS AUTO
 // =======================================================================
 using (var scope = app.Services.CreateScope())
@@ -159,11 +167,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-
 // =======================================================================
-// MIDDLEWARES
+// SWAGGER
 // =======================================================================
-app.UseMiddleware<TratamentoDeErros>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
