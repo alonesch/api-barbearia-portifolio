@@ -24,23 +24,29 @@ namespace BarbeariaPortifolio.API.Middleware
             }
             catch (AppException erro)
             {
-                contexto.Response.StatusCode = erro.StatusCode;
-                contexto.Response.ContentType = "application/json";
+                if(!contexto.Response.HasStarted)
+                {
+                    contexto.Response.StatusCode = erro.StatusCode;
+                    contexto.Response.ContentType = "application/json";
+                
+                    var retorno = new { mensagem = erro.Message };
+                    await contexto.Response.WriteAsync(JsonSerializer.Serialize(retorno));
+                }
 
-                var retorno = new { mensagem = erro.Message };
-                await contexto.Response.WriteAsync(JsonSerializer.Serialize(retorno));
             }
             catch (Exception)
             {
-                contexto.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                contexto.Response.ContentType = "application/json";
+                if(!contexto.Response.HasStarted)
+                {
 
-                var retorno = new { message = "Erro interno do servidor." };
-                await contexto.Response.WriteAsync(JsonSerializer.Serialize(retorno));
+                    contexto.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    contexto.Response.ContentType = "application/json";
 
+                    var retorno = new { message = "Erro interno do servidor." };
+                    await contexto.Response.WriteAsync(JsonSerializer.Serialize(retorno));
+
+                }
             }
-
-
         }
     }
 }
