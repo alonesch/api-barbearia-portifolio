@@ -1,5 +1,6 @@
 using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Data;
+using BarbeariaPortifolio.API.Middleware;
 using BarbeariaPortifolio.API.Repositorios;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos;
@@ -12,6 +13,8 @@ using System.Text;
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // =======================================================================
 // SWAGGER
@@ -160,6 +163,7 @@ using (var scope = app.Services.CreateScope())
 // =======================================================================
 // MIDDLEWARES
 // =======================================================================
+app.UseMiddleware<TratamentoDeErros>();
 app.UseSwagger();
 app.UseSwaggerUI();
 

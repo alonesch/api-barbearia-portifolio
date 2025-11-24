@@ -1,8 +1,8 @@
-﻿using BarbeariaPortfolio.API.DTOs;
-using BarbeariaPortifolio.API.Models;
+﻿using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.DTOs;
+using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Servicos
 {
@@ -35,7 +35,7 @@ namespace BarbeariaPortifolio.API.Servicos
 
         public async Task<AgendamentoDTO> Cadastrar(AgendamentoDTO dto)
         {
-            
+
             if (string.IsNullOrWhiteSpace(dto.Nome))
                 throw new Exception("O nome do cliente é obrigatório.");
 
@@ -53,13 +53,13 @@ namespace BarbeariaPortifolio.API.Servicos
 
             var conflito = await _repositorio.ChecarHorarios(dto.BarbeiroId, dto.DataHora);
 
-        
+
             if (conflito)
-                throw new Exception("Este horário já tem reserva! Por favor selecione outro horário.");
+                throw new AppException("Horário já reservado!", 409);
 
             var cliente = await _repositorio.BuscarOuCriarCliente(dto.Nome, dto.Cpf, dto.Telefone);
 
-            
+
             var agendamento = new Agendamento
             {
                 ClienteId = cliente.Id,
@@ -71,7 +71,7 @@ namespace BarbeariaPortifolio.API.Servicos
 
             await _repositorio.Cadastrar(agendamento);
 
-            
+
             foreach (var s in dto.AgendamentoServicos)
             {
                 var item = new AgendamentoServico
@@ -84,7 +84,7 @@ namespace BarbeariaPortifolio.API.Servicos
                 await _repositorio.CadastrarAgendamentoServico(item);
             }
 
-            
+
             dto.Id = agendamento.Id;
             return dto;
         }
@@ -117,7 +117,7 @@ namespace BarbeariaPortifolio.API.Servicos
         public async Task<bool> Excluir(int id)
             => await _repositorio.Excluir(id);
 
-        
+
         private static AgendamentoDTO MapToDto(Agendamento a)
         {
             return new AgendamentoDTO
