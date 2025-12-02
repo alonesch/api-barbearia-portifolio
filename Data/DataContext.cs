@@ -23,13 +23,11 @@ namespace BarbeariaPortifolio.API.Data
 
             modelBuilder.Entity<Cliente>()
                 .Property(c => c.DataCadastro)
-                .ValueGeneratedOnAdd()
-                .HasDefaultValue(DateTime.UtcNow);
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<Agendamento>()
                 .Property(a => a.DataRegistro)
-                .ValueGeneratedOnAdd()
-                .HasDefaultValue(DateTime.UtcNow);
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<Agendamento>()
                 .Property(a => a.Status)

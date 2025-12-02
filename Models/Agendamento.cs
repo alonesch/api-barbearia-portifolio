@@ -17,12 +17,12 @@ public class Agendamento
     public int BarbeiroId { get; set; }
     public Barbeiro Barbeiro { get; set; } = null!;
 
-    [Column(TypeName = "datetime")]
+    [Column(TypeName = "timestamp with time zone")]
     public DateTime DataHora { get; set; }
 
     public int Status { get; set; }
 
-    [Column(TypeName = "datetime")]
+    [Column(TypeName = "timestamp with time zone")]
     public DateTime DataRegistro { get; set; } = DateTime.Now;
 
     [Column(TypeName = "varchar(255)")]
