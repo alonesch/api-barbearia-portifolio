@@ -1,5 +1,6 @@
 using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Data;
+using BarbeariaPortifolio.API.Middleware;
 using BarbeariaPortifolio.API.Repositorios;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos;
@@ -8,8 +9,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
-DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,19 +26,15 @@ builder.Services.AddAuthorization();
 // =======================================================================
 // DATABASE
 // =======================================================================
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var pgConnection = builder.Configuration.GetConnectionString("Postgres");
 
-if (string.IsNullOrWhiteSpace(connectionString))
+if (string.IsNullOrWhiteSpace(pgConnection))
 {
-    Console.WriteLine("⚠️ Nenhuma connection string encontrada. Usando fallback...");
-    connectionString =
-        "Server=yamabiko.proxy.rlwy.net;Port=15819;Database=railway;User=root;Password=FwIAsbobfoGSFUrfLCSLNrtauWZtPTZN;";
+    throw new Exception("Connection string 'Postgres' nao encontra do JSON");
 }
 
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-
-
+options.UseNpgsql(pgConnection));
 // =======================================================================
 // JWT
 // =======================================================================
@@ -77,13 +72,11 @@ builder.Services
         };
     });
 
-
 // =======================================================================
-// CORS DEFINITIVO (PROFISSIONAL)
+// CORS
 // =======================================================================
 builder.Services.AddCors(options =>
 {
-    // PRODUÇÃO – apenas domínio oficial
     options.AddPolicy("prd", policy =>
         policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
               .AllowAnyHeader()
@@ -91,7 +84,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials()
     );
 
-    // DESENVOLVIMENTO / PREVIEW – frontend dev e localhost liberados
     options.AddPolicy("dev", policy =>
         policy.WithOrigins(
                 "https://dev-barbearia-gabriel-port.vercel.app",
@@ -103,7 +95,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials()
     );
 });
-
 
 // =======================================================================
 // DEPENDENCY INJECTION
@@ -121,9 +112,8 @@ builder.Services.AddScoped<IUsuarioServico, UsuarioServico>();
 builder.Services.AddScoped<IAuthServico, AuthServico>();
 builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
 
-
 // =======================================================================
-// KESTREL (PORTA RAILWAY)
+// KESTREL (Render)
 // =======================================================================
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 
@@ -134,15 +124,15 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.WebHost.UseSetting("AllowedHosts", "*");
 
-
 // =======================================================================
 // BUILD APP
 // =======================================================================
 var app = builder.Build();
 
-// =======================================================================
-// MIGRATIONS AUTO
-// =======================================================================
+// ERROR HANDLING
+app.UseMiddleware<TratamentoDeErros>();
+
+// MIGRATIONS ON BOOT
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -156,21 +146,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-
-// =======================================================================
-// MIDDLEWARES
-// =======================================================================
+// SWAGGER
 app.UseSwagger();
 app.UseSwaggerUI();
 
-
 var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-if (envApp == "Development")
-    app.UseCors("dev");
-else
-    app.UseCors("prd");
+app.UseCors(envApp == "Development" ? "dev" : "prd");
 
-// 🔥 Fix global do preflight (sem exigir auth)
+// PREFLIGHT FIX
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
@@ -187,7 +170,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine($"🌍 Ambiente ativo: {envApp}");
-Console.ResetColor();
+
 app.Run();

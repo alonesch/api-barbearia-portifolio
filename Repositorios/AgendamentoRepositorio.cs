@@ -54,6 +54,15 @@ namespace BarbeariaPortifolio.API.Repositorios
             return agendamento;
         }
 
+        public async Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora)
+        {
+            return await _repositorio.Agendamentos.AnyAsync
+                (a => a.BarbeiroId == barbeiroId
+                &&
+                a.DataHora == dataHora
+                );
+        }
+
         public async Task<bool> Atualizar(Agendamento agendamento)
         {
             _repositorio.Agendamentos.Update(agendamento);
@@ -98,7 +107,7 @@ namespace BarbeariaPortifolio.API.Repositorios
             await _repositorio.SaveChangesAsync();
         }
 
-        public async Task <Agendamento?> BuscarStatusId(int id)
+        public async Task<Agendamento?> BuscarStatusId(int id)
         {
             return await _repositorio.Agendamentos
                 .FirstOrDefaultAsync(a => a.Id == id);
