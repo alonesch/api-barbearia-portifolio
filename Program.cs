@@ -115,14 +115,7 @@ builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
 // =======================================================================
 // KESTREL (Render)
 // =======================================================================
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(int.Parse(port));
-});
-
-builder.WebHost.UseSetting("AllowedHosts", "*");
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // =======================================================================
 // BUILD APP
