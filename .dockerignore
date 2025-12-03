@@ -1,0 +1,41 @@
+# Build outputs
+bin/
+obj/
+out/
+app/publish/
+
+# Dependencies cache
+*.nuget
+*.nupkg
+*.snupkg
+
+# IDE / Tools
+.vscode/
+.vs/
+.idea/
+*.user
+*.suo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+*.DS_Store
+Thumbs.db
+
+# Node (if exists)
+node_modules/
+npm-debug.log
+
+# CI/CD temporary
+.rendertmp/
+
+# Environments
+*.env
+.env*
