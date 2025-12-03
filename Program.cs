@@ -26,19 +26,19 @@ builder.Services.AddAuthorization();
 // =======================================================================
 // DATABASE
 // =======================================================================
-var pgConnection = builder.Configuration.GetConnectionString("POSTGRES_CONNECTION");
+var pgConnection = builder.Configuration.GetConnectionString("Postgres");
 
 if (string.IsNullOrWhiteSpace(pgConnection))
 {
-    pgConnection = builder.Configuration.GetConnectionString("Postgres");
+    pgConnection = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION");
 }
 
 if (string.IsNullOrWhiteSpace(pgConnection))
 {
-    Console.WriteLine("String de conexão 'Postgres' não encontrada!");
-    
+    throw new Exception("String de conexão 'Postgres' não encontrada!");
+}
 
-    builder.Services.AddDbContext<DataContext>(options =>
+builder.Services.AddDbContext<DataContext>(options =>
 options.UseNpgsql(pgConnection));
 // =======================================================================
 // JWT
