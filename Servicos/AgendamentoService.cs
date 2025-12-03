@@ -68,6 +68,7 @@ namespace BarbeariaPortifolio.API.Servicos
                 ClienteId = cliente.Id,
                 BarbeiroId = dto.BarbeiroId,
                 DataHora = dataHoraUtc,
+                DataRegistro = DateTime.UtcNow,
                 Status = dto.Status > 0 ? dto.Status : 1,
                 Observacao = dto.Observacao
             };
