@@ -51,10 +51,11 @@ namespace BarbeariaPortifolio.API.Servicos
             if (dto.AgendamentoServicos == null || dto.AgendamentoServicos.Count == 0)
                 throw new Exception("Selecione pelo menos um serviço.");
 
-            dto.DataHora = DateTime.SpecifyKind(dto.DataHora, DateTimeKind.Utc);
+            
 
-            var conflito = await _repositorio.ChecarHorarios(dto.BarbeiroId, dto.DataHora);
-
+            var dataHoraUtc = dto.DataHora.ToUniversalTime();
+            
+            var conflito = await _repositorio.ChecarHorarios(dto.BarbeiroId, dataHoraUtc);
 
             if (conflito)
                 throw new AppException("Horário já reservado!", 409);
@@ -66,7 +67,7 @@ namespace BarbeariaPortifolio.API.Servicos
             {
                 ClienteId = cliente.Id,
                 BarbeiroId = dto.BarbeiroId,
-                DataHora = dto.DataHora,
+                DataHora = dataHoraUtc,
                 Status = dto.Status > 0 ? dto.Status : 1,
                 Observacao = dto.Observacao
             };
