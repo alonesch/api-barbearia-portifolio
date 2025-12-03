@@ -51,6 +51,8 @@ namespace BarbeariaPortifolio.API.Servicos
             if (dto.AgendamentoServicos == null || dto.AgendamentoServicos.Count == 0)
                 throw new Exception("Selecione pelo menos um serviço.");
 
+            dto.DataHora = DateTime.SpecifyKind(dto.DataHora, DateTimeKind.Utc);
+
             var conflito = await _repositorio.ChecarHorarios(dto.BarbeiroId, dto.DataHora);
 
 

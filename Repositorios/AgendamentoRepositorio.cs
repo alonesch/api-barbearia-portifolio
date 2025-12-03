@@ -59,7 +59,7 @@ namespace BarbeariaPortifolio.API.Repositorios
             return await _repositorio.Agendamentos.AnyAsync
                 (a => a.BarbeiroId == barbeiroId
                 &&
-                a.DataHora == dataHora
+                a.DataHora == dataHora.ToUniversalTime()
                 );
         }
 
