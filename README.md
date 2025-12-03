@@ -134,4 +134,41 @@ Endpoint:
 
 ### Health Check
 Endpoint para monitoramento no Render:
+GET /ping → "pong"
+
+
+###  CI/CD com Render
+- Deploy automático via Dockerfile  
+- Ambientes DEV e PRD separados  
+- Health Check obrigatório  
+- Variáveis de ambiente seguras  
+
+---
+
+##  Deploy
+
+**Back-end:**  
+- Deploy usando Docker + Render  
+- PostgreSQL dedicado (DEV/PRD)  
+- Permissões refinadas no banco  
+- Logs, CORS e JWT configurados por ambiente  
+
+**Front-end:**  
+- Hospedado na Vercel  
+- Totalmente integrado com esta API  
+
+---
+
+##  Status Atual do Projeto
+
+A API está em **estado estável**, com:
+
+- Infraestrutura DevOps completa  
+- Segurança reforçada (JWT + Roles + CORS)  
+- Banco PostgreSQL estruturado  
+- Fluxo de agendamentos 100% funcional  
+- Painel administrativo integrado  
+- Deploy contínuo totalmente operacional  
+
+---
 
