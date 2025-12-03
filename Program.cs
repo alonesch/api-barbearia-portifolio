@@ -182,17 +182,7 @@ app.UseRouting();
 
 app.UseCors(envApp == "Development" ? "dev" : "prd");
 
-// PERMITIR PREFLIGHT CORS
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
-    await next.Invoke();
-});
+
 
 app.UseAuthentication();
 app.UseAuthorization();
