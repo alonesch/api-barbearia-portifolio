@@ -26,11 +26,13 @@ builder.Services.AddAuthorization();
 // =======================================================================
 // DATABASE
 // =======================================================================
+var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
 var pgConnection = builder.Configuration.GetConnectionString("Postgres");
 
 if (string.IsNullOrWhiteSpace(pgConnection))
 {
-    pgConnection = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION");
+    pgConnection = Environment.GetEnvironmentVariable(
+        envApp =="Development" ? "POSTGRES_CONNECTION_DEV" : "POSTGRES_CONNECTION");
 }
 
 if (string.IsNullOrWhiteSpace(pgConnection))
@@ -148,7 +150,7 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
 app.UseCors(envApp == "Development" ? "dev" : "prd");
 
 // PREFLIGHT FIX
