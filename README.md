@@ -1,42 +1,67 @@
-#  API — Barbearia Portifolio  
-Back-end desenvolvido em .NET 9 + MySQL para o sistema de agendamento da barbearia.
+
+# 💈 BarbeariaPortfolio.API — Back-end em .NET 9
+
+API oficial do sistema de agendamentos da barbearia, desenvolvida em **.NET 9**, com arquitetura limpa, autenticação JWT e deploy automatizado no Render.  
+Ela fornece toda a base de dados, regras de negócio e segurança utilizadas pelo front-end hospedado na Vercel.
+
+---
 
 ##  Visão Geral
-Esta API foi construída para gerenciar todo o fluxo de agendamentos de uma barbearia, incluindo clientes, barbeiros, serviços, autenticação e painel administrativo.  
-Ela funciona como base de dados e regras de negócio para o front-end hospedado na Vercel.
 
-A API está publicada em produção no Railway.
+Esta API é responsável por todo o fluxo operacional do sistema da barbearia:
+
+- Gestão de clientes  
+- Agenda dos barbeiros  
+- Cadastro de serviços  
+- Agendamentos com múltiplos serviços  
+- Autenticação com JWT  
+- Painel administrativo integrado ao front-end  
+
+A aplicação roda em ambientes **DEV** e **PRODUÇÃO**, ambos na plataforma **Render**, utilizando **PostgreSQL** como banco de dados.
 
 ---
 
 ##  Arquitetura
-O projeto segue o padrão de **3 camadas**:
 
-- **Controllers**: recebem a requisição e retornam resposta padronizada.  
-- **Services**: camada onde toda a lógica de negócio acontece.  
-- **Repositories**: camada responsável pela comunicação com o banco via Entity Framework Core.  
-- **DataContext**: mapeamento das entidades e relacionamentos.
+A API segue o padrão de **3 camadas**, garantindo organização, fácil manutenção e escalabilidade:
+
+- **Controllers** — Entrada da requisição e saída da resposta  
+- **Services** — Regras de negócio  
+- **Repositories** — Persistência com Entity Framework Core  
+- **DataContext** — Mapeamento de entidades e migrations  
+
+A arquitetura foi planejada para suportar crescimento, testes e integrações futuras.
 
 ---
 
 ##  Autenticação e Segurança
-O sistema utiliza:
 
-- **JWT** (Access + Refresh token)
-- **Hash de Refresh Token**
-- **Roles (Administrador / Barbeiro)**
-- **Rate Limiting** para rotas sensíveis
-- **Chave JWT por variável de ambiente**
-- **CORS configurado para produção**
+A API utiliza um sistema robusto de segurança com:
 
-A sessão do administrador é controlada pelo front e validada pela API.
+- **JWT (Access Token + Refresh Token)**  
+- **Refresh Token criptografado**  
+- **Issuer, Audience e Key configurados via appsettings + variáveis de ambiente**  
+- **Middleware global para padronizar erros**  
+- **CORS separado por ambiente (DEV/PRD)**  
+- **Usuário restrito PostgreSQL (`barber_api_user`) com permissões controladas**  
 
 ---
 
-##  Banco de Dados
-Tecnologia: **MySQL**
+##  Banco de Dados — PostgreSQL
 
-### Principais tabelas:
+Tecnologia atual: **PostgreSQL (Render)**  
+Ambientes separados:
+
+- **dev_barber_db**  
+- **prd_barber_db**
+
+Roles configuradas:
+
+- `barber_api_user` → apenas SELECT, INSERT, UPDATE, DELETE  
+- Permissões automáticas para novas tabelas (default privileges)  
+
+### Principais tabelas
+
 - Cliente  
 - Barbeiro  
 - Serviço  
@@ -45,56 +70,68 @@ Tecnologia: **MySQL**
 - Usuario  
 - RefreshToken  
 
-### Status numéricos de agendamento:
-1 pendente
-2 confirmado
-3 aguardando pagamento
-4 pago
-5 cancelado pelo cliente
-6 cancelado pelo barbeiro
-7 finalizado
-8 extra
-9 extra
+### Status do Agendamento
 
+| Código | Status                   |
+|--------|--------------------------|
+| 1      | Pendente                 |
+| 2      | Confirmado               |
+| 3      | Aguardando pagamento     |
+| 4      | Pago                     |
+| 5      | Cancelado pelo cliente   |
+| 6      | Cancelado pelo barbeiro  |
+| 7      | Finalizado               |
+| 8      | Extra                    |
+| 9      | Extra                    |
 
 ---
 
 ##  Funcionalidades Implementadas
 
-### ✔ Criação de Agendamento
-- Cria cliente automaticamente se telefone não existir  
-- Reaproveita cliente já existente  
-- Valida conflito de horário  
-- Salva serviços vinculados  
-- Aceita observação opcional  
+###  Criação de Agendamento
+- Geração automática de cliente quando telefone não existe  
+- Reuso de cliente existente  
+- Validação de conflitos de horário  
+- Suporte a múltiplos serviços por agendamento  
+- Observação opcional  
 
-### ✔ Listagem Completa (Admin)
-Retorna:
-- cliente  
-- barbeiro  
-- serviços  
-- observação  
-- status (com texto)  
-- data e hora  
+###  Listagem Administrativa
+Retorno completo contendo:
 
-### ✔ Alteração de Status
-Fluxo completo implementado:  
+- Cliente  
+- Barbeiro  
+- Serviços  
+- Status + descrição  
+- Observação  
+- Data e hora  
+
+###  Alteração de Status  
+Endpoint:  
 `PATCH /agendamentos/{id}/status`
 
-### ✔ Autenticação JWT
-- Login  
-- Refresh token  
-- Renovação segura  
+###  Autenticação JWT
+- Login seguro  
+- Renovação via Refresh Token  
+- Proteção de rotas por Role  
 
 ---
 
-##  Deploy
-- API hospedada no **Railway**  
-- Rodando em **Production**  
-- Banco em MySQL remoto  
+##  DevOps — Infraestrutura Moderna
 
----
+###  Dockerfile Multi-Stage
+- Build otimizado em .NET SDK  
+- Runtime enxuto em ASP.NET 9  
+- Timezone configurado  
+- Exposto em `0.0.0.0:8080` (Render)
 
-##  Status Atual do Projeto
-A API está **completamente funcional**, estável e integrada ao front.  
-O último recurso desenvolvido foi o fluxo de **alteração de status**, 100% funcional em produção.
+###  .dockerignore
+- Reduz contexto de build  
+- Remove binários, obj, cache, node_modules etc.
+
+###  Migrations Automáticas
+- Executadas no boot da aplicação  
+- Tratamento seguro de erros  
+
+### Health Check
+Endpoint para monitoramento no Render:
+
