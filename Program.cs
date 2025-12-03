@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+// =======================================================================
+// BUILDER
+// =======================================================================
 var builder = WebApplication.CreateBuilder(args);
 
 // =======================================================================
@@ -27,12 +30,13 @@ builder.Services.AddAuthorization();
 // DATABASE
 // =======================================================================
 var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
 var pgConnection = builder.Configuration.GetConnectionString("Postgres");
 
 if (string.IsNullOrWhiteSpace(pgConnection))
 {
     pgConnection = Environment.GetEnvironmentVariable(
-        envApp =="Development" ? "POSTGRES_CONNECTION_DEV" : "POSTGRES_CONNECTION");
+        envApp == "Development" ? "POSTGRES_CONNECTION_DEV" : "POSTGRES_CONNECTION");
 }
 
 if (string.IsNullOrWhiteSpace(pgConnection))
@@ -41,7 +45,8 @@ if (string.IsNullOrWhiteSpace(pgConnection))
 }
 
 builder.Services.AddDbContext<DataContext>(options =>
-options.UseNpgsql(pgConnection));
+    options.UseNpgsql(pgConnection));
+
 // =======================================================================
 // JWT
 // =======================================================================
@@ -72,6 +77,8 @@ builder.Services
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
             ValidIssuer = jwt.Issuer,
             ValidAudience = jwt.Audience,
             IssuerSigningKey = key,
@@ -97,9 +104,9 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173",
                 "http://localhost:3000"
             )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
     );
 });
 
@@ -120,8 +127,17 @@ builder.Services.AddScoped<IAuthServico, AuthServico>();
 builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
 
 // =======================================================================
-// KESTREL (Render)
+// KESTREL OPTIMIZATION
 // =======================================================================
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
+});
+
+ThreadPool.SetMinThreads(100, 100);
+
 builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // =======================================================================
@@ -129,10 +145,14 @@ builder.WebHost.UseUrls("http://0.0.0.0:8080");
 // =======================================================================
 var app = builder.Build();
 
+// =======================================================================
 // ERROR HANDLING
+// =======================================================================
 app.UseMiddleware<TratamentoDeErros>();
 
+// =======================================================================
 // MIGRATIONS ON BOOT
+// =======================================================================
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -146,14 +166,23 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// SWAGGER
-app.UseSwagger();
-app.UseSwaggerUI();
+// =======================================================================
+// SWAGGER (DEV only)
+// =======================================================================
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
+// =======================================================================
+// MIDDLEWARE PIPELINE
+// =======================================================================
+app.UseRouting();
 
 app.UseCors(envApp == "Development" ? "dev" : "prd");
 
-// PREFLIGHT FIX
+// PERMITIR PREFLIGHT CORS
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
@@ -168,8 +197,15 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
+// HEALTHCHECK
+app.MapGet("/ping", () => Results.Ok("pong"));
+
+// CONTROLLERS
 app.MapControllers();
 
 Console.WriteLine($"🌍 Ambiente ativo: {envApp}");
 
+// =======================================================================
+// RUN APP
+// =======================================================================
 app.Run();
