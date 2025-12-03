@@ -27,7 +27,7 @@ namespace BarbeariaPortifolio.API.Controllers
             public string Senha { get; set; } = string.Empty;
         }
 
-        [EnableRateLimiting("login")]
+        //[EnableRateLimiting("login")]
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
