@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 using BarbeariaPortifolio.API.Models;
 
+namespace BarbeariaPortifolio.API.Models;
+
 [Table("Cliente")]
 public class Cliente
 {

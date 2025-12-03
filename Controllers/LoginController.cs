@@ -1,8 +1,10 @@
 ﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.API.Auth;
+using BarbeariaPortifolio.API.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
+
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -33,50 +35,39 @@ namespace BarbeariaPortifolio.API.Controllers
                 string.IsNullOrWhiteSpace(request.Usuario) ||
                 string.IsNullOrWhiteSpace(request.Senha))
             {
-                return BadRequest(new
-                {
-                    autenticado = false,
-                    mensagem = "Credenciais inválidas."
-                });
+                throw new AppException("Credenciais inválidas.", 400);
             }
 
-            var (sucesso, mensagem, usuario) =
-                await _auth.ValidarLogin(request.Usuario, request.Senha);
+            var (_, _, usuario) = await _auth.ValidarLogin(request.Usuario, request.Senha);
 
-            if (!sucesso || usuario == null)
-            {
-                return Unauthorized(new
-                {
-                    autenticado = false,
-                    mensagem
-                });
-            }
 
-            
-            var accessToken = await _auth.GerarAccessToken(usuario);
+
+            var accessToken = await _auth.GerarAccessToken(usuario!);
 
             var (refreshRaw, refreshHash) = await _auth.GerarRefreshToken();
 
-            await _auth.SalvarRefreshToken(usuario, refreshHash, _jwt.RefreshTokenDays);
-            
-            var barbeiroId = await _auth.BuscarBarbeiroId(usuario.Id);
+            await _auth.SalvarRefreshToken(usuario!, refreshHash, _jwt.RefreshTokenDays);
+
+            var barbeiroId = await _auth.BuscarBarbeiroId(usuario!.Id);
 
             return Ok(new
             {
-                autenticado = true,
-                mensagem = "Login efetuado com sucesso.",
-                token = accessToken,
-                refreshToken = refreshRaw,
-                usuario = new
+                mensagem = "Login realizado com sucesso.",
+                dados = new
                 {
-                    usuario.Id,
-                    usuario.NomeUsuario,
-                    usuario.NomeCompleto,
-                    usuario.Cargo,
-                    usuario.Role,
-                    barbeiroId = barbeiroId ?? null,
-                    
+                    token = accessToken,
+                    refreshToken = refreshRaw,
+                    usuario = new
+                    {
+                        usuario.Id,
+                        usuario.NomeUsuario,
+                        usuario.NomeCompleto,
+                        usuario.Cargo,
+                        usuario.Role,
+                        barbeiroId = barbeiroId ?? null
+                    }
                 }
+
             });
         }
     }

@@ -1,12 +1,11 @@
-﻿using BarbeariaPortifolio.API.Models;
-using BarbeariaPortifolio.API.Servicos.Interfaces;
+﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
+using BarbeariaPortifolio.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
-    
     [Route("api/[controller]")]
     [ApiController]
     public class ServicoController : ControllerBase
@@ -30,37 +29,44 @@ namespace BarbeariaPortifolio.API.Controllers
         {
             var servico = await _servicoServico.BuscarPorId(id);
             if (servico == null)
-               return NotFound("Serviço não encontrado.");
+                throw new AppException("Serviço não encontrado.", 404);
+
             return Ok(servico);
         }
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Cadastrar (Servico servico)
+        public async Task<IActionResult> Cadastrar([FromBody] ServicoDTO dto)
         {
-            var novo = await _servicoServico.Cadastrar(servico);
-            return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
+            var novo = await _servicoServico.Cadastrar(dto);
+
+            return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, new
+            {
+                mensagem = "Serviço cadastrado com sucesso.",
+                dados = novo
+            });
         }
 
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Atualizar (int id, Servico servico)
+        public async Task<IActionResult> Atualizar(int id, [FromBody] ServicoDTO dto)
         {
-            var atualizado = await _servicoServico.Atualizar(id, servico);
+            var atualizado = await _servicoServico.Atualizar(id, dto);
             if (!atualizado)
-                return BadRequest("Erro ao atualizar o serviço.");
-            return Ok("Servico atualizado com sucesso.");
+                throw new AppException("Serviço não encontrado.", 404);
+
+            return Ok(new { mensagem = "Serviço atualizado com sucesso." });
         }
 
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Excluir (int id)
+        public async Task<IActionResult> Excluir(int id)
         {
             var excluido = await _servicoServico.Excluir(id);
             if (!excluido)
-                return NotFound("Serviço não encontrado");
-            return Ok("Serviço deletado com sucesso.");
-        }
+                throw new AppException("Serviço não encontrado.", 404);
 
+            return Ok(new { mensagem = "Serviço excluído com sucesso." });
+        }
     }
 }
