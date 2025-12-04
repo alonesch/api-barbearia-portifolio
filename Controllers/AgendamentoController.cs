@@ -2,7 +2,8 @@
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.DTOs;
 using Microsoft.AspNetCore.Authorization;
-using BarbeariaPortfolio.API.DTOs;
+using BarbeariaPortifolio.API.DTOs;
+using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -33,7 +34,7 @@ namespace BarbeariaPortifolio.API.Controllers
         {
             var agendamento = await _servico.BuscarPorId(id);
             if (agendamento == null)
-                return NotFound("Agendamento não encontrado.");
+                throw new AppException("Agendamento não encontrado.", 404);
             return Ok(agendamento);
         }
 
@@ -53,9 +54,8 @@ namespace BarbeariaPortifolio.API.Controllers
 
             return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, new
             {
-                sucesso = true,
                 mensagem = "Agendamento criado com sucesso.",
-                agendamento = novo
+                dados = novo
             });
         }
 
@@ -65,9 +65,10 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Atualizar(int id, [FromBody] AgendamentoDTO dto)
         {
             var atualizado = await _servico.Atualizar(id, dto);
-            return atualizado
-                ? NoContent()
-                : NotFound("Agendamento não encontrado.");
+            if (!atualizado)
+                throw new AppException("Agendamento não encontrado.", 404);
+
+            return Ok(new { mensagem = "Agendamento atualizado com sucesso." });
         }
 
         [Authorize]
@@ -76,10 +77,10 @@ namespace BarbeariaPortifolio.API.Controllers
         {
             var alterado = await _servico.AlterarStatus(id, dto.Status);
             if (!alterado)
-                return NotFound("Agendamento não encontrado.");
+                throw new AppException("Agendamento não encontrado.", 404);
 
-            return Ok("Status atualizado com sucesso.");
-                
+            return Ok(new { mensagem = "Status do agendamento atualizado com sucesso." });
+
         }
 
 
@@ -90,9 +91,10 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Excluir(int id)
         {
             var excluido = await _servico.Excluir(id);
-            return excluido
-                ? Ok("Agendamento removido com sucesso.")
-                : NotFound("Agendamento não encontrado.");
+            if (!excluido)
+                throw new AppException("Agendamento não encontrado.", 404);
+                
+            return Ok(new { mensagem = "Agendamento excluído com sucesso." });
         }
     }
 }

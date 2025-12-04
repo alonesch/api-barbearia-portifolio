@@ -1,14 +1,13 @@
-﻿using BarbeariaPortifolio.API.Models;
-
+﻿using BarbeariaPortifolio.DTOs;
 
 namespace BarbeariaPortifolio.API.Servicos.Interfaces
 {
     public interface IServicoServico
     {
-        Task<IEnumerable<Servico>> ListarTodos();
-        Task<Servico?> BuscarPorId(int id);
-        Task<Servico> Cadastrar(Servico servico);
-        Task<bool> Atualizar(int id, Servico servico); 
+        Task<IEnumerable<ServicoDTO>> ListarTodos();
+        Task<ServicoDTO?> BuscarPorId(int id);
+        Task<ServicoDTO> Cadastrar(ServicoDTO dto);
+        Task<bool> Atualizar(int id, ServicoDTO dto);
         Task<bool> Excluir(int id);
     }
 }

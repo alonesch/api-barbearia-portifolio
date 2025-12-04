@@ -2,6 +2,7 @@
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.DTOs;
+using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Servicos;
 
@@ -45,17 +46,17 @@ public class ClienteServico : IClienteServico
     public async Task<ClienteDTO> Cadastrar(ClienteDTO dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Nome))
-            throw new Exception("O nome do cliente é obrigatório");
+            throw new AppException("O nome do cliente é obrigatório.", 400);
 
         if (string.IsNullOrWhiteSpace(dto.Telefone))
-            throw new Exception("O telefone do cliente é obrigatório");
+            throw new AppException("O telefone do cliente é obrigatório.", 400);
 
         var novo = new Cliente
         {
             Nome = dto.Nome,
             Cpf = dto.Cpf,
             Telefone = dto.Telefone,
-            DataCadastro = DateTime.Now
+            DataCadastro = DateTime.UtcNow
         };
 
         var criado = await _repositorio.Cadastrar(novo);

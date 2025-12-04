@@ -3,8 +3,7 @@ using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using Microsoft.Extensions.Options;
-using System;
-using System.Threading.Tasks;
+using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Servicos
 {
@@ -35,10 +34,10 @@ namespace BarbeariaPortifolio.API.Servicos
             var user = await _usuarios.BuscarPorNome(usuario);
 
             if (user == null || !user.Ativo)
-                return (false, "Usuário ou senha incorretos.", null);
+                throw new AppException("Usuário ou senha incorretos.", 401);
 
             if (!BCrypt.Net.BCrypt.Verify(senha, user.SenhaHash))
-                return (false, "Usuário ou senha incorretos.", null);
+                throw new AppException("Usuário ou senha incorretos.", 401);
 
             return (true, "Login realizado com sucesso.", user);
         }

@@ -21,10 +21,14 @@ namespace BarbeariaPortifolio.API.Servicos
             return agendamentos.Select(MapToDto);
         }
 
-        public async Task<AgendamentoDTO?> BuscarPorId(int id)
+        public async Task<AgendamentoDTO> BuscarPorId(int id)
         {
             var agendamento = await _repositorio.BuscarPorId(id);
-            return agendamento == null ? null : MapToDto(agendamento);
+
+            if (agendamento == null)
+                throw new AppException("Agendamento não encontrado.", 404);
+
+            return MapToDto(agendamento);
         }
 
         public async Task<IEnumerable<AgendamentoDTO>> ListarPorBarbeiro(int barbeiroId)
@@ -37,30 +41,35 @@ namespace BarbeariaPortifolio.API.Servicos
         {
 
             if (string.IsNullOrWhiteSpace(dto.Nome))
-                throw new Exception("O nome do cliente é obrigatório.");
+                throw new AppException("O nome do cliente é obrigatório.", 400);
 
             if (string.IsNullOrWhiteSpace(dto.Telefone))
-                throw new Exception("O telefone do cliente é obrigatório.");
+                throw new AppException("O telefone do cliente é obrigatório.", 400);
 
             if (dto.BarbeiroId <= 0)
-                throw new Exception("Barbeiro inválido.");
+                throw new AppException("Barbeiro inválido.", 400);
 
             if (dto.DataHora == default)
-                throw new Exception("A data e hora do agendamento são obrigatórias.");
+                throw new AppException("A data e hora do agendamento são obrigatórias.", 400);
 
             if (dto.AgendamentoServicos == null || dto.AgendamentoServicos.Count == 0)
-                throw new Exception("Selecione pelo menos um serviço.");
+                throw new AppException("Selecione pelo menos um serviço.", 400);
 
-            
+
 
             var dataHoraUtc = dto.DataHora.ToUniversalTime();
-            
+
+
+
             var conflito = await _repositorio.ChecarHorarios(dto.BarbeiroId, dataHoraUtc);
 
             if (conflito)
                 throw new AppException("Horário já reservado!", 409);
 
+
+
             var cliente = await _repositorio.BuscarOuCriarCliente(dto.Nome, dto.Cpf, dto.Telefone);
+
 
 
             var agendamento = new Agendamento
@@ -76,6 +85,7 @@ namespace BarbeariaPortifolio.API.Servicos
             await _repositorio.Cadastrar(agendamento);
 
 
+
             foreach (var s in dto.AgendamentoServicos)
             {
                 var item = new AgendamentoServico
@@ -89,16 +99,21 @@ namespace BarbeariaPortifolio.API.Servicos
             }
 
 
+
             dto.Id = agendamento.Id;
+            dto.DataHora = dataHoraUtc;
+
             return dto;
         }
 
         public async Task<bool> Atualizar(int id, AgendamentoDTO dto)
         {
             var agendamento = await _repositorio.BuscarPorId(id);
-            if (agendamento == null) return false;
 
-            agendamento.DataHora = dto.DataHora;
+            if (agendamento == null)
+                throw new AppException("Agendamento não encontrado.", 404);
+
+            agendamento.DataHora = dto.DataHora.ToUniversalTime();
             agendamento.Status = dto.Status;
             agendamento.Observacao = dto.Observacao;
 
@@ -110,7 +125,7 @@ namespace BarbeariaPortifolio.API.Servicos
             var agendamento = await _repositorio.BuscarStatusId(id);
 
             if (agendamento == null)
-                return false;
+                throw new AppException("Agendamento não encontrado.", 404);
 
             agendamento.Status = novoStatus;
 
@@ -119,7 +134,14 @@ namespace BarbeariaPortifolio.API.Servicos
         }
 
         public async Task<bool> Excluir(int id)
-            => await _repositorio.Excluir(id);
+        {
+            var removido = await _repositorio.Excluir(id);
+
+            if (!removido)
+                throw new AppException("Agendamento não encontrado.", 404);
+
+            return true;
+        }
 
 
         private static AgendamentoDTO MapToDto(Agendamento a)

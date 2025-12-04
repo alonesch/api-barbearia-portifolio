@@ -1,4 +1,4 @@
-﻿namespace BarbeariaPortfolio.API.DTOs
+﻿namespace BarbeariaPortifolio.API.DTOs
 {
     public class StatusDTO
     {

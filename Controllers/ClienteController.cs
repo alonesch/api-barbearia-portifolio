@@ -2,6 +2,7 @@
 using BarbeariaPortifolio.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Controllers;
 
@@ -21,11 +22,15 @@ public class ClienteController : ControllerBase
     public async Task<IActionResult> Listar()
         => Ok(await _clienteServico.ListarTodos());
 
+    
     [HttpGet("{id}")]
     public async Task<IActionResult> Buscar(int id)
     {
         var cliente = await _clienteServico.BuscarPorId(id);
-        return cliente == null ? NotFound("Cliente não encontrado.") : Ok(cliente);
+        if (cliente == null)
+            throw new AppException("Cliente não encontrado.", 404);
+
+        return Ok(cliente);
     }
 
     
@@ -33,7 +38,11 @@ public class ClienteController : ControllerBase
     public async Task<IActionResult> Cadastrar([FromBody] ClienteDTO dto)
     {
         var novo = await _clienteServico.Cadastrar(dto);
-        return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
+        return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, new
+        {
+            mensagem = "Cliente cadastrado com sucesso.",
+            dados = novo
+        });
     }
 
     [Authorize]
@@ -41,7 +50,10 @@ public class ClienteController : ControllerBase
     public async Task<IActionResult> Atualizar(int id, [FromBody] ClienteDTO dto)
     {
         var ok = await _clienteServico.Atualizar(id, dto);
-        return ok ? NoContent() : NotFound("Cliente não encontrado.");
+        if (!ok)
+            throw new AppException("Cliente não encontrado.", 404);
+
+        return Ok(new { mensagem = "Cliente atualizado com sucesso." });
     }
 
     [Authorize]
@@ -49,6 +61,9 @@ public class ClienteController : ControllerBase
     public async Task<IActionResult> Excluir(int id)
     {
         var ok = await _clienteServico.Excluir(id);
-        return ok ? Ok("Cliente removido com sucesso.") : NotFound("Cliente não encontrado.");
+        if (!ok)
+            throw new AppException("Cliente não encontrado.", 404);
+
+        return Ok(new { mensagem = "Cliente excluído com sucesso." });
     }
 }

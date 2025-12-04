@@ -2,6 +2,7 @@
 using BarbeariaPortifolio.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -27,7 +28,8 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Buscar(int id)
         {
             var item = await _servico.BuscarPorId(id);
-            if (item == null) return NotFound("Barbeiro não encontrado.");
+            if (item == null) 
+                throw new AppException("Barbeiro não encontrado.", 404);
             return Ok(item);
         }
 
@@ -36,7 +38,11 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Cadastrar([FromBody] BarbeiroDTO dto)
         {
             var novo = await _servico.Cadastrar(dto);
-            return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, novo);
+            return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, new
+            {
+                mensagem = "Barbeiro cadastrado com sucesso.",
+                dado = novo
+            });
         }
 
         [Authorize]
@@ -44,7 +50,9 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Atualizar(int id, [FromBody] BarbeiroDTO dto)
         {
             var ok = await _servico.Atualizar(id, dto);
-            return ok ? NoContent() : NotFound("Barbeiro não encontrado.");
+            if(!ok)
+                throw new AppException("Barbeiro não encontrado.", 404);
+            return Ok(new { mensagem = "Barbeiro atualizado com sucesso." });
         }
 
         [Authorize]
@@ -52,7 +60,9 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Excluir(int id)
         {
             var ok = await _servico.Excluir(id);
-            return ok ? Ok("Removido com sucesso.") : NotFound("Barbeiro não encontrado.");
+            if (!ok)
+                throw new AppException("Barbeiro não encontrado.", 404);
+            return Ok(new { mensagem = "Barbeiro excluído com sucesso." });
         }
     }
 }
