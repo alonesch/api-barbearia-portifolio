@@ -1,4 +1,4 @@
-﻿using BarbeariaPortifolio.DTOs;
+﻿using BarbeariaPortifolio.API.DTOs;
 
 namespace BarbeariaPortifolio.API.Servicos.Interfaces
 {

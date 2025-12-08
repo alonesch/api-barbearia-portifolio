@@ -203,19 +203,36 @@ builder.WebHost.UseUrls("http://0.0.0.0:8080");
 // =======================================================================
 var app = builder.Build();
 
-app.Use(async (context, next) =>
+// =======================================================================
+// ERROR HANDLING DEBUG (DEV only)
+// =======================================================================
+if (app.Environment.IsDevelopment())
 {
-    try
+    app.Use(async (context, next) =>
     {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("🔥 EXCEÇÃO NÃO TRATADA:");
-        Console.WriteLine(ex.ToString());
-        throw;
-    }
-});
+        try
+        {
+            Console.WriteLine($"🔵 REQUEST: {context.Request.Method} {context.Request.Path}");
+            await next();
+            Console.WriteLine($"✅ RESPONSE: {context.Response.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("🔥 EXCEÇÃO NÃO TRATADA:");
+            Console.WriteLine($"Message: {ex.Message}");
+            Console.WriteLine($"Type: {ex.GetType().Name}");
+            Console.WriteLine($"InnerException: {ex.InnerException?.Message}");
+            Console.WriteLine($"StackTrace: {ex.StackTrace}");
+            Console.WriteLine("==========================================");
+            throw;
+        }
+    });
+}
+
+// =======================================================================
+// ERROR HANDLING
+// =======================================================================
+app.UseMiddleware<TratamentoDeErros>();
 
 // =======================================================================
 // ERROR HANDLING

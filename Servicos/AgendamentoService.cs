@@ -1,7 +1,7 @@
 ﻿using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
-using BarbeariaPortifolio.DTOs;
+using BarbeariaPortifolio.API.DTOs;
 using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Servicos
@@ -37,15 +37,9 @@ namespace BarbeariaPortifolio.API.Servicos
             return agendamentos.Select(MapToDto);
         }
 
-        public async Task<AgendamentoDTO> Cadastrar(AgendamentoDTO dto)
+        // ✅ NOVA ASSINATURA COM USUARIO ID
+        public async Task<AgendamentoDTO> Cadastrar(int usuarioId, AgendamentoDTO dto)
         {
-
-            if (string.IsNullOrWhiteSpace(dto.Nome))
-                throw new AppException("O nome do cliente é obrigatório.", 400);
-
-            if (string.IsNullOrWhiteSpace(dto.Telefone))
-                throw new AppException("O telefone do cliente é obrigatório.", 400);
-
             if (dto.BarbeiroId <= 0)
                 throw new AppException("Barbeiro inválido.", 400);
 
@@ -55,26 +49,16 @@ namespace BarbeariaPortifolio.API.Servicos
             if (dto.AgendamentoServicos == null || dto.AgendamentoServicos.Count == 0)
                 throw new AppException("Selecione pelo menos um serviço.", 400);
 
-
-
             var dataHoraUtc = dto.DataHora.ToUniversalTime();
 
-
-
+            // ✅ CONFLITO MANTIDO
             var conflito = await _repositorio.ChecarHorarios(dto.BarbeiroId, dataHoraUtc);
-
             if (conflito)
                 throw new AppException("Horário já reservado!", 409);
 
-
-
-            var cliente = await _repositorio.BuscarOuCriarCliente(dto.Nome, dto.Cpf, dto.Telefone);
-
-
-
             var agendamento = new Agendamento
             {
-                ClienteId = cliente.Id,
+                UsuarioId = usuarioId,              // ✅ NOVO DONO DO AGENDAMENTO
                 BarbeiroId = dto.BarbeiroId,
                 DataHora = dataHoraUtc,
                 DataRegistro = DateTime.UtcNow,
@@ -83,8 +67,6 @@ namespace BarbeariaPortifolio.API.Servicos
             };
 
             await _repositorio.Cadastrar(agendamento);
-
-
 
             foreach (var s in dto.AgendamentoServicos)
             {
@@ -97,8 +79,6 @@ namespace BarbeariaPortifolio.API.Servicos
 
                 await _repositorio.CadastrarAgendamentoServico(item);
             }
-
-
 
             dto.Id = agendamento.Id;
             dto.DataHora = dataHoraUtc;
@@ -143,19 +123,22 @@ namespace BarbeariaPortifolio.API.Servicos
             return true;
         }
 
-
+        
         private static AgendamentoDTO MapToDto(Agendamento a)
         {
             return new AgendamentoDTO
             {
                 Id = a.Id,
-                Nome = a.Cliente.Nome,
-                Cpf = a.Cliente.Cpf,
-                Telefone = a.Cliente.Telefone,
+
+                UsuarioId = a.UsuarioId,
+                Nome = a.Usuario.NomeCompleto,
+                Email = a.Usuario.Email,
+
                 BarbeiroId = a.BarbeiroId,
                 DataHora = a.DataHora,
                 Status = a.Status,
                 Observacao = a.Observacao,
+
                 AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
                 {
                     ServicoId = s.ServicoId,

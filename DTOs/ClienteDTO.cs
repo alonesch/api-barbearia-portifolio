@@ -1,12 +1,15 @@
 ﻿using System;
 
-namespace BarbeariaPortifolio.DTOs;
+namespace BarbeariaPortifolio.API.DTOs;
 
 public class ClienteDTO
 {
-    public int Id { get; set; }
-    public string Nome { get; set; } = string.Empty;
-    public string? Cpf { get; set; }
+    public int UsuarioId { get; set; }
+    public string NomeCompleto { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+
+    public string? Cpf {  get; set; }
     public string Telefone { get; set; } = string.Empty;
     public DateTime DataCadastro { get; set; }
+
 }

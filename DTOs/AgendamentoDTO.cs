@@ -1,12 +1,11 @@
-﻿namespace BarbeariaPortifolio.DTOs
+﻿namespace BarbeariaPortifolio.API.DTOs
 {
     public class AgendamentoDTO
     {
         public int Id { get; set; }
-
+        public int UsuarioId { get; set; }
         public string Nome { get; set; } = string.Empty;
-        public string Cpf { get; set; } = string.Empty;
-        public string Telefone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
         public int BarbeiroId { get; set; }
 

@@ -19,7 +19,7 @@ namespace BarbeariaPortifolio.API.Repositorios
             return await _banco.Barbeiros
                 .Include(b => b.Usuario)
                 .Include(b => b.Agendamentos!)
-                    .ThenInclude(a => a.Cliente)
+                    .ThenInclude(a => a.Usuario)                // ✅ em vez de Cliente
                 .Include(b => b.Agendamentos!)
                     .ThenInclude(a => a.AgendamentoServicos!)
                         .ThenInclude(asv => asv.Servico)
@@ -32,7 +32,7 @@ namespace BarbeariaPortifolio.API.Repositorios
             return await _banco.Barbeiros
                 .Include(b => b.Usuario)
                 .Include(b => b.Agendamentos!)
-                    .ThenInclude(a => a.Cliente)
+                    .ThenInclude(a => a.Usuario)
                 .Include(b => b.Agendamentos!)
                     .ThenInclude(a => a.AgendamentoServicos!)
                         .ThenInclude(asv => asv.Servico)

@@ -12,9 +12,8 @@ namespace BarbeariaPortifolio.API.Repositorios.Interfaces
         Task<bool> Atualizar(Agendamento agendamento);
         Task<bool> Excluir(int id);
 
-        Task<Cliente> BuscarOuCriarCliente(string nome, string cpf, string telefone);
         Task CadastrarAgendamentoServico(AgendamentoServico item);
-        
+
         Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora);
 
         Task<Agendamento?> BuscarStatusId(int id);

@@ -9,13 +9,15 @@ public class Agendamento
     [Key]
     public int Id { get; set; }
 
-    [ForeignKey("Cliente")]
-    public int ClienteId { get; set; }
-    public Cliente Cliente { get; set; } = null!;
+    
+    [ForeignKey("Usuario")]
+    public int UsuarioId { get; set; }
+    public Usuario Usuario { get; set; } = null!;
 
     [ForeignKey("Barbeiro")]
     public int BarbeiroId { get; set; }
     public Barbeiro Barbeiro { get; set; } = null!;
+
 
     [Column(TypeName = "timestamp with time zone")]
     public DateTime DataHora { get; set; }
@@ -23,10 +25,11 @@ public class Agendamento
     public int Status { get; set; }
 
     [Column(TypeName = "timestamp with time zone")]
-    public DateTime DataRegistro { get; set; } = DateTime.Now;
+    public DateTime DataRegistro { get; set; } = DateTime.UtcNow;
 
     [Column(TypeName = "varchar(255)")]
     public string? Observacao { get; set; }
 
-    public ICollection<AgendamentoServico> AgendamentoServicos { get; set; } = new List<AgendamentoServico>();
+    public ICollection<AgendamentoServico> AgendamentoServicos { get; set; }
+        = new List<AgendamentoServico>();
 }

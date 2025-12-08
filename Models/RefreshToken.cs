@@ -9,7 +9,7 @@ namespace BarbeariaPortifolio.API.Models
 
         [Required]
         public int UsuarioId { get; set; }
-        public Usuario Usuario { get; set; }
+        public Usuario Usuario { get; set; } = null!;
 
         [Required]
         public string TokenHash { get; set; } = string.Empty;

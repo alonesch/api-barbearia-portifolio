@@ -7,10 +7,10 @@ namespace BarbeariaPortifolio.API.Models
         public int Id { get; set; }
 
         [Required]
-        public string NomeUsuario { get; set; } = string.Empty;   // atalho de login
+        public string NomeUsuario { get; set; } = string.Empty;   
 
         [Required, EmailAddress]
-        public string Email { get; set; } = string.Empty;         // identificador principal
+        public string Email { get; set; } = string.Empty;         
 
         [Required]
         public string SenhaHash { get; set; } = string.Empty;
@@ -19,7 +19,7 @@ namespace BarbeariaPortifolio.API.Models
         public string NomeCompleto { get; set; } = string.Empty;
 
         [Required]
-        public string Cargo { get; set; } = string.Empty;         // Admin | Barbeiro | Cliente
+        public string Cargo { get; set; } = string.Empty;         
 
         public bool EmailConfirmado { get; set; } = false;
 

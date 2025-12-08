@@ -1,10 +1,8 @@
-﻿using BarbeariaPortifolio.API.Models;
+﻿using BarbeariaPortifolio.API.DTOs;
+using BarbeariaPortifolio.API.Exceptions;
+using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
-using BarbeariaPortifolio.DTOs;
-using BarbeariaPortifolio.API.Exceptions;
-
-namespace BarbeariaPortifolio.API.Servicos;
 
 public class ClienteServico : IClienteServico
 {
@@ -15,74 +13,64 @@ public class ClienteServico : IClienteServico
         _repositorio = repositorio;
     }
 
-    public async Task<IEnumerable<ClienteDTO>> ListarTodos()
+    public async Task<ClienteDTO> BuscarPorUsuario(int usuarioId)
     {
-        var clientes = await _repositorio.ListarTodos();
-        return clientes.Select(c => new ClienteDTO
-        {
-            Id = c.Id,
-            Nome = c.Nome,
-            Cpf = c.Cpf,
-            Telefone = c.Telefone,
-            DataCadastro = c.DataCadastro
-        });
-    }
+        var cliente = await _repositorio.BuscarPorUsuario(usuarioId);
 
-    public async Task<ClienteDTO?> BuscarPorId(int id)
-    {
-        var cliente = await _repositorio.BuscarPorId(id);
-        if (cliente == null) return null;
+        if (cliente == null)
+            throw new AppException("Perfil de cliente não encontrado", 404);
 
         return new ClienteDTO
         {
-            Id = cliente.Id,
-            Nome = cliente.Nome,
+            UsuarioId = cliente.UsuarioId,
+            NomeCompleto = cliente.Usuario?.NomeCompleto ?? "",
+            Email = cliente.Usuario?.Email ?? "",
             Cpf = cliente.Cpf,
-            Telefone = cliente.Telefone,
+            Telefone = cliente.Telefone ?? "",
             DataCadastro = cliente.DataCadastro
         };
     }
 
-    public async Task<ClienteDTO> Cadastrar(ClienteDTO dto)
+    public async Task<ClienteDTO> CriarPerfil(int usuarioId, ClienteDTO dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Nome))
-            throw new AppException("O nome do cliente é obrigatório.", 400);
-
         if (string.IsNullOrWhiteSpace(dto.Telefone))
-            throw new AppException("O telefone do cliente é obrigatório.", 400);
+            throw new AppException("Telefone é obrigatório", 400);
+
+        var existente = await _repositorio.BuscarPorUsuario(usuarioId);
+        if (existente != null)
+            throw new AppException("Perfil de cliente já existe", 409);
 
         var novo = new Cliente
         {
-            Nome = dto.Nome,
-            Cpf = dto.Cpf,
+            UsuarioId = usuarioId,
             Telefone = dto.Telefone,
+            Cpf = dto.Cpf,
             DataCadastro = DateTime.UtcNow
         };
 
-        var criado = await _repositorio.Cadastrar(novo);
+        var criado = await _repositorio.Criar(novo);
 
         return new ClienteDTO
         {
-            Id = criado.Id,
-            Nome = criado.Nome,
+            UsuarioId = criado.UsuarioId,
+            NomeCompleto = criado.Usuario?.NomeCompleto ?? "",
+            Email = criado.Usuario?.Email ?? "",
             Cpf = criado.Cpf,
-            Telefone = criado.Telefone,
+            Telefone = criado.Telefone ?? "",
             DataCadastro = criado.DataCadastro
         };
     }
 
-    public async Task<bool> Atualizar(int id, ClienteDTO dto)
+    public async Task<bool> AtualizarPerfil(int usuarioId, ClienteDTO dto)
     {
-        var clienteExistente = await _repositorio.BuscarPorId(id);
-        if (clienteExistente == null) return false;
+        var cliente = await _repositorio.BuscarPorUsuario(usuarioId);
 
-        clienteExistente.Nome = dto.Nome;
-        clienteExistente.Cpf = dto.Cpf;
-        clienteExistente.Telefone = dto.Telefone;
+        if (cliente == null)
+            throw new AppException("Perfil de cliente não encontrado", 404);
 
-        return await _repositorio.Atualizar(id, clienteExistente);
+        cliente.Telefone = dto.Telefone;
+        cliente.Cpf = dto.Cpf;
+
+        return await _repositorio.Atualizar(cliente);
     }
-
-    public async Task<bool> Excluir(int id)
-        => await _repositorio.Excluir(id);
 }

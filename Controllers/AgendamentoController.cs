@@ -44,15 +44,18 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(agendamentos);
         }
 
-        
+
+        [Authorize(Policy = "Cliente")]
         [HttpPost]
         public async Task<IActionResult> Cadastrar([FromBody] AgendamentoDTO dto)
         {
-            var novo = await _servico.Cadastrar(dto);
+            var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
 
-            return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, new
+            var novo = await _servico.Cadastrar(usuarioId, dto);
+
+            return CreatedAtAction(nameof(Buscar), new { Id = novo.Id }, new
             {
-                mensagem = "Agendamento criado com sucesso.",
+                mensagem = "Agendamento criado com sucesso!",
                 dados = novo
             });
         }

@@ -1,8 +1,9 @@
 ﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
-using BarbeariaPortifolio.DTOs;
+using BarbeariaPortifolio.API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BarbeariaPortifolio.API.Exceptions;
+using BarbeariaPortifolio.API.Servicos;
 
 namespace BarbeariaPortifolio.API.Controllers;
 
@@ -10,60 +11,35 @@ namespace BarbeariaPortifolio.API.Controllers;
 [Route("api/[controller]")]
 public class ClienteController : ControllerBase
 {
-    private readonly IClienteServico _clienteServico;
+    private readonly IClienteServico _servico;
 
-    public ClienteController(IClienteServico clienteServico)
+
+    public ClienteController(IClienteServico servico)
     {
-        _clienteServico = clienteServico;
+        _servico = servico; 
     }
-
-    [Authorize(Policy = "Admin")]
-    [HttpGet]
-    public async Task<IActionResult> Listar()
-        => Ok(await _clienteServico.ListarTodos());
-
-    [Authorize(Policy = "AdminOuBarbeiro")]
-    [HttpGet("{id}")]
-    public async Task<IActionResult> Buscar(int id)
-    {
-        var cliente = await _clienteServico.BuscarPorId(id);
-        if (cliente == null)
-            throw new AppException("Cliente não encontrado.", 404);
-
-        return Ok(cliente);
-    }
-
     
-    [HttpPost]
-    public async Task<IActionResult> Cadastrar([FromBody] ClienteDTO dto)
+    
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
     {
-        var novo = await _clienteServico.Cadastrar(dto);
-        return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, new
-        {
-            mensagem = "Cliente cadastrado com sucesso.",
-            dados = novo
-        });
+        var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
+        return Ok(await _servico.BuscarPorUsuario(usuarioId));
     }
 
-    [Authorize(Policy = "Admin")]
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Atualizar(int id, [FromBody] ClienteDTO dto)
+    [HttpPost("me")]
+    public async Task<IActionResult> CriarPerfil([FromBody] ClienteDTO dto)
     {
-        var ok = await _clienteServico.Atualizar(id, dto);
-        if (!ok)
-            throw new AppException("Cliente não encontrado.", 404);
-
-        return Ok(new { mensagem = "Cliente atualizado com sucesso." });
+        var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
+        return Ok(await _servico.CriarPerfil(usuarioId, dto));
     }
 
-    [Authorize(Policy = "Admin")]
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Excluir(int id)
+    [HttpPut("me")]
+    public async Task<IActionResult> AtualizarPerfil([FromBody] ClienteDTO dto)
     {
-        var ok = await _clienteServico.Excluir(id);
-        if (!ok)
-            throw new AppException("Cliente não encontrado.", 404);
-
-        return Ok(new { mensagem = "Cliente excluído com sucesso." });
+        var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
+        await _servico.AtualizarPerfil(usuarioId, dto);
+        return Ok(new { mensagem = "Perfil de cliente atualizado com sucesso." });
     }
 }
+

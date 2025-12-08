@@ -1,5 +1,5 @@
 ﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
-using BarbeariaPortifolio.DTOs;
+using BarbeariaPortifolio.API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BarbeariaPortifolio.API.Exceptions;
@@ -19,7 +19,7 @@ namespace BarbeariaPortifolio.API.Controllers
 
 
 
-        [Authorize(Policy = "Admin")]
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Listar()
         {
@@ -28,7 +28,7 @@ namespace BarbeariaPortifolio.API.Controllers
         }
 
 
-        [Authorize(Policy = "Admin")]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Buscar(int id)
         {

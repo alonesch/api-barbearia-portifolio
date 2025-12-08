@@ -17,7 +17,7 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task<IEnumerable<Agendamento>> ListarTodos()
         {
             return await _repositorio.Agendamentos
-                .Include(a => a.Cliente)
+                .Include(a => a.Usuario) // ✅ em vez de Cliente
                 .Include(a => a.Barbeiro)
                 .Include(a => a.AgendamentoServicos)
                     .ThenInclude(asg => asg.Servico)
@@ -28,7 +28,7 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task<Agendamento?> BuscarPorId(int id)
         {
             return await _repositorio.Agendamentos
-                .Include(a => a.Cliente)
+                .Include(a => a.Usuario)
                 .Include(a => a.Barbeiro)
                 .Include(a => a.AgendamentoServicos)
                     .ThenInclude(asg => asg.Servico)
@@ -39,7 +39,7 @@ namespace BarbeariaPortifolio.API.Repositorios
         {
             return await _repositorio.Agendamentos
                 .Where(a => a.BarbeiroId == barbeiroId)
-                .Include(a => a.Cliente)
+                .Include(a => a.Usuario)
                 .Include(a => a.Barbeiro)
                 .Include(a => a.AgendamentoServicos)
                     .ThenInclude(asg => asg.Servico)
@@ -56,11 +56,10 @@ namespace BarbeariaPortifolio.API.Repositorios
 
         public async Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora)
         {
-            return await _repositorio.Agendamentos.AnyAsync
-                (a => a.BarbeiroId == barbeiroId
-                &&
-                a.DataHora == dataHora.ToUniversalTime()
-                );
+            return await _repositorio.Agendamentos.AnyAsync(
+                a => a.BarbeiroId == barbeiroId &&
+                     a.DataHora == dataHora.ToUniversalTime()
+            );
         }
 
         public async Task<bool> Atualizar(Agendamento agendamento)
@@ -78,27 +77,6 @@ namespace BarbeariaPortifolio.API.Repositorios
             _repositorio.Agendamentos.Remove(agendamento);
             await _repositorio.SaveChangesAsync();
             return true;
-        }
-
-        public async Task<Cliente> BuscarOuCriarCliente(string nome, string cpf, string telefone)
-        {
-            var cliente = await _repositorio.Clientes
-                .FirstOrDefaultAsync(c => c.Telefone == telefone);
-
-            if (cliente != null)
-                return cliente;
-
-            cliente = new Cliente
-            {
-                Nome = nome,
-                Cpf = cpf,
-                Telefone = telefone
-            };
-
-            _repositorio.Clientes.Add(cliente);
-            await _repositorio.SaveChangesAsync();
-
-            return cliente;
         }
 
         public async Task CadastrarAgendamentoServico(AgendamentoServico item)

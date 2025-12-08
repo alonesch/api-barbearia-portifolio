@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BarbeariaPortfolio.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20251208055635_teste")]
-    partial class teste
+    [Migration("20251208194149_AjusteClientePerfil")]
+    partial class AjusteClientePerfil
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,9 +54,6 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Property<int>("BarbeiroId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("DataHora")
                         .HasColumnType("timestamp with time zone");
 
@@ -73,11 +70,14 @@ namespace BarbeariaPortfolio.API.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(1);
 
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BarbeiroId");
 
-                    b.HasIndex("ClienteId");
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Agendamento");
                 });
@@ -106,36 +106,6 @@ namespace BarbeariaPortfolio.API.Migrations
                         .IsUnique();
 
                     b.ToTable("Barbeiro");
-                });
-
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Cliente", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasColumnType("varchar(15)");
-
-                    b.Property<DateTime>("DataCadastro")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<string>("Telefone")
-                        .IsRequired()
-                        .HasColumnType("varchar(15)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Cliente");
                 });
 
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.EmailConfirmacaoToken", b =>
@@ -259,6 +229,36 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("Cliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cpf")
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<DateTime>("DataCadastro")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Telefone")
+                        .IsRequired()
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Cliente");
+                });
+
             modelBuilder.Entity("Disponibilidade", b =>
                 {
                     b.Property<int>("Id")
@@ -321,15 +321,15 @@ namespace BarbeariaPortfolio.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BarbeariaPortifolio.API.Models.Cliente", "Cliente")
-                        .WithMany("Agendamentos")
-                        .HasForeignKey("ClienteId")
+                    b.HasOne("BarbeariaPortifolio.API.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Barbeiro");
 
-                    b.Navigation("Cliente");
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Barbeiro", b =>
@@ -364,6 +364,17 @@ namespace BarbeariaPortfolio.API.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Cliente", b =>
+                {
+                    b.HasOne("BarbeariaPortifolio.API.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Disponibilidade", b =>
                 {
                     b.HasOne("BarbeariaPortifolio.API.Models.Barbeiro", "Barbeiro")
@@ -381,11 +392,6 @@ namespace BarbeariaPortfolio.API.Migrations
                 });
 
             modelBuilder.Entity("BarbeariaPortifolio.API.Models.Barbeiro", b =>
-                {
-                    b.Navigation("Agendamentos");
-                });
-
-            modelBuilder.Entity("BarbeariaPortifolio.API.Models.Cliente", b =>
                 {
                     b.Navigation("Agendamentos");
                 });

@@ -1,30 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BarbeariaPortifolio.API.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Collections.Generic;
-using BarbeariaPortifolio.API.Models;
 
-namespace BarbeariaPortifolio.API.Models;
-
-[Table("Cliente")]
+[Table("Cliente")] // ou "Clientes", se quiser padronizar
 public class Cliente
 {
     [Key]
     public int Id { get; set; }
 
-    [Column(TypeName = "varchar(150)")]
-    [Required]
-    public string Nome { get; set; } = string.Empty;
+    public int UsuarioId { get; set; }
+
+    public Usuario Usuario { get; set; } = null!;
 
     [Column(TypeName = "varchar(15)")]
-    [Required]
     public string? Cpf { get; set; }
 
-    [Column(TypeName = "varchar(15)")]
     [Required]
-    public string Telefone { get; set; } = string.Empty;
+    [Column(TypeName = "varchar(15)")]
+    public string Telefone { get; set; } = null!;
 
     [Column(TypeName = "timestamp with time zone")]
     public DateTime DataCadastro { get; set; }
-
-    public virtual ICollection<Agendamento>? Agendamentos { get; set; }
 }
