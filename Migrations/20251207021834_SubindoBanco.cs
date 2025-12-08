@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BarbeariaPortfolio.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitPostgres : Migration
+    public partial class SubindoBanco : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -135,6 +135,30 @@ namespace BarbeariaPortfolio.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Disponibilidades",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BarbeiroId = table.Column<int>(type: "integer", nullable: false),
+                    Data = table.Column<DateOnly>(type: "date", nullable: false),
+                    HoraInicio = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
+                    HoraFim = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
+                    Ativo = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    DataCriacao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Disponibilidades", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_Disponibilidades_Barbeiro_BarbeiroId",
+                        column: x => x.BarbeiroId,
+                        principalTable: "Barbeiro",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AgendamentoServicos",
                 columns: table => new
                 {
@@ -181,6 +205,11 @@ namespace BarbeariaPortfolio.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Disponibilidades_BarbeiroId",
+                table: "Disponibilidades",
+                column: "BarbeiroId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UsuarioId",
                 table: "RefreshTokens",
                 column: "UsuarioId");
@@ -191,6 +220,9 @@ namespace BarbeariaPortfolio.API.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AgendamentoServicos");
+
+            migrationBuilder.DropTable(
+                name: "Disponibilidades");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");

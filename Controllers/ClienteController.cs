@@ -17,12 +17,12 @@ public class ClienteController : ControllerBase
         _clienteServico = clienteServico;
     }
 
-    [Authorize]
+    [Authorize(Policy = "Admin")]
     [HttpGet]
     public async Task<IActionResult> Listar()
         => Ok(await _clienteServico.ListarTodos());
 
-    
+    [Authorize(Policy = "AdminOuBarbeiro")]
     [HttpGet("{id}")]
     public async Task<IActionResult> Buscar(int id)
     {
@@ -45,7 +45,7 @@ public class ClienteController : ControllerBase
         });
     }
 
-    [Authorize]
+    [Authorize(Policy = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Atualizar(int id, [FromBody] ClienteDTO dto)
     {
@@ -56,7 +56,7 @@ public class ClienteController : ControllerBase
         return Ok(new { mensagem = "Cliente atualizado com sucesso." });
     }
 
-    [Authorize]
+    [Authorize(Policy = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Excluir(int id)
     {

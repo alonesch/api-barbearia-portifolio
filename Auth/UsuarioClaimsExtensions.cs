@@ -11,8 +11,10 @@ namespace BarbeariaPortifolio.API.Auth
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.NomeUsuario),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim("cargo", user.Cargo ?? ""),
+
+               
+                new Claim("cargo", user.Cargo),
+
                 new Claim("nomeCompleto", user.NomeCompleto ?? "")
             };
 

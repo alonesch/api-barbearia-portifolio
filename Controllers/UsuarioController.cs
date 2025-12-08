@@ -22,7 +22,7 @@ namespace BarbeariaPortifolio.API.Controllers
         // public async Task<IActionResult> ListarTodos()
         //     => Ok(await _servico.ListarTodos());
 
-        [Authorize]
+        //[Authorize(Policy = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> BuscarPorId(int id)
         {
@@ -33,6 +33,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(usuario);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Cadastrar([FromBody] Usuario usuario)
         {
@@ -45,7 +46,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] Usuario usuario)
         {
@@ -57,7 +58,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(new { mensagem = "Usuário atualizado com sucesso." });
         }
 
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)
         {

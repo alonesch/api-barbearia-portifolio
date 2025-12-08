@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public string NomeUsuario { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
+        public string Cargo { get; set; } = string.Empty;
         public int? BarbeiroId { get; set; }
     }
 }

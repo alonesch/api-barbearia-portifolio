@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using BarbeariaPortifolio.API.Models;
-using System;
 
 namespace BarbeariaPortifolio.API.Data
 {
@@ -14,7 +13,9 @@ namespace BarbeariaPortifolio.API.Data
         public DbSet<Agendamento> Agendamentos => Set<Agendamento>();
         public DbSet<AgendamentoServico> AgendamentoServicos => Set<AgendamentoServico>();
         public DbSet<Usuario> Usuarios => Set<Usuario>();
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+        public DbSet<Disponibilidade> Disponibilidades { get; set; } = null!;
+        public DbSet<EmailConfirmacaoToken> EmailConfirmacaoTokens { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,10 +35,33 @@ namespace BarbeariaPortifolio.API.Data
                 .HasDefaultValue(1);
 
             modelBuilder.Entity<Barbeiro>()
-                .HasOne(b =>  b.Usuario)
+                .HasOne(b => b.Usuario)
                 .WithOne()
                 .HasForeignKey<Barbeiro>(b => b.UsuarioId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Disponibilidade>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Data).IsRequired();
+                entity.Property(x => x.Hora).IsRequired();
+
+                entity.Property(x => x.Ativo).HasDefaultValue(true);
+                entity.Property(x => x.DataCriacao).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.HasOne(x => x.Barbeiro)
+                    .WithMany()
+                    .HasForeignKey(x => x.BarbeiroId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+
+            modelBuilder.Entity<EmailConfirmacaoToken>()
+                .HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.UsuarioId);
         }
     }
 }

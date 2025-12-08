@@ -1,0 +1,18 @@
+﻿using BarbeariaPortifolio.API.DTOs.Disponibilidade;
+
+public interface IDisponibilidadeServico
+{
+    Task CriarDisponibilidadeAsync(int barbeiroId, CriarDisponibilidadeDto dto);
+
+    Task<IEnumerable<DisponibilidadeResponseDto>> ListarDisponibilidadesPublicasAsync(
+        int barbeiroId,
+        DateOnly data
+    );
+
+    Task<IEnumerable<DisponibilidadeResponseDto>> ListarDisponibilidadesDoBarbeiroAsync(
+        int barbeiroId,
+        DateOnly data
+    );
+
+    Task AtualizarStatusAsync(int disponibilidadeId, bool ativo, int barbeiroId);
+}

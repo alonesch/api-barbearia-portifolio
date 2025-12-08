@@ -46,7 +46,6 @@ namespace BarbeariaPortifolio.API.Servicos
             existente.NomeUsuario = usuario.NomeUsuario;
             existente.NomeCompleto = usuario.NomeCompleto;
             existente.Cargo = usuario.Cargo;
-            existente.Role = usuario.Role;
             existente.Ativo = usuario.Ativo;
 
             if (!string.IsNullOrWhiteSpace(usuario.SenhaHash))

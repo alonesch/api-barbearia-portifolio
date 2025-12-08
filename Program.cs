@@ -1,6 +1,7 @@
 using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Data;
 using BarbeariaPortifolio.API.Middleware;
+using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos;
@@ -8,6 +9,7 @@ using BarbeariaPortifolio.API.Servicos.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 // =======================================================================
@@ -20,11 +22,64 @@ var builder = WebApplication.CreateBuilder(args);
 // =======================================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "Barbearia API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Cole aqui o token {seu_token}"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    
+    c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
+    c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
+});
+
+
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
-builder.Services.AddAuthorization();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+        policy.RequireClaim("cargo", "Admin"));
+
+    options.AddPolicy("Barbeiro", policy =>
+        policy.RequireClaim("cargo", "Barbeiro"));
+
+    options.AddPolicy("Cliente", policy =>
+        policy.RequireClaim("cargo", "Cliente"));
+
+    options.AddPolicy("AdminOuBarbeiro", policy =>
+        policy.RequireAssertion(ctx =>
+        {
+            var cargo = ctx.User.FindFirst("cargo")?.Value;
+            return cargo == "Admin" || cargo == "Barbeiro";
+        }));
+});
+
 
 // =======================================================================
 // DATABASE
@@ -125,6 +180,9 @@ builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IUsuarioServico, UsuarioServico>();
 builder.Services.AddScoped<IAuthServico, AuthServico>();
 builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
+builder.Services.AddScoped<IDisponibilidadeServico, DisponibilidadeServico>();
+builder.Services.AddScoped<IEmailConfirmacaoTokenRepositorio, EmailConfirmacaoTokenRepositorio>();
+builder.Services.AddScoped<IEmailServico, EmailServico>();
 
 // =======================================================================
 // KESTREL OPTIMIZATION
@@ -144,6 +202,20 @@ builder.WebHost.UseUrls("http://0.0.0.0:8080");
 // BUILD APP
 // =======================================================================
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("🔥 EXCEÇÃO NÃO TRATADA:");
+        Console.WriteLine(ex.ToString());
+        throw;
+    }
+});
 
 // =======================================================================
 // ERROR HANDLING

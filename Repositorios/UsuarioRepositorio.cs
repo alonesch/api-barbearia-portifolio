@@ -1,7 +1,6 @@
 ﻿using BarbeariaPortifolio.API.Data;
 using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
-using BarbeariaPortifolio.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace BarbeariaPortifolio.API.Repositorios
@@ -15,34 +14,25 @@ namespace BarbeariaPortifolio.API.Repositorios
             _banco = banco;
         }
 
-        
-        //public async Task<IEnumerable<UsuarioDTO>> ListarTodos()
-        //{
-        //    return await _banco.Usuarios
-        //        .Select(u => new UsuarioDTO
-        //        {
-        //            Id = u.Id,
-        //            NomeUsuario = u.NomeUsuario,
-        //            Role = u.Role,
-        //            BarbeiroId = u.Id != null ? u.Id.Id : null
-        //        })
-        //        .AsNoTracking()
-        //        .ToListAsync();
-        //}
-
-        
         public async Task<Usuario?> BuscarPorId(int id)
         {
             return await _banco.Usuarios
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        
         public async Task<Usuario?> BuscarPorNome(string nomeUsuario)
         {
             return await _banco.Usuarios
                 .FirstOrDefaultAsync(u =>
                     u.NomeUsuario.ToLower() == nomeUsuario.ToLower()
+                );
+        }
+
+        public async Task<Usuario?> BuscarPorEmail(string email)
+        {
+            return await _banco.Usuarios
+                .FirstOrDefaultAsync(u =>
+                    u.Email.ToLower() == email.ToLower()
                 );
         }
 
