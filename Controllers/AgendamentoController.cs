@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
-using BarbeariaPortifolio.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using BarbeariaPortifolio.API.DTOs;
 using BarbeariaPortifolio.API.Exceptions;
+using System.Security.Claims;
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -31,12 +31,10 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Buscar(int id)
         {
             var agendamento = await _servico.BuscarPorId(id);
-            if (agendamento == null)
-                throw new AppException("Agendamento não encontrado.", 404);
             return Ok(agendamento);
         }
 
-        
+        [Authorize(Policy = "Admin")]
         [HttpGet("barbeiro/{id}")]
         public async Task<IActionResult> ListarPorBarbeiro(int id)
         {
@@ -44,13 +42,20 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(agendamentos);
         }
 
+        [Authorize(Policy = "Cliente")]
+        [HttpGet("me")]
+        public async Task<IActionResult> ListarMeus()
+        {
+            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var agendamentos = await _servico.ListarPorUsuario(usuarioId);
+            return Ok(agendamentos);
+        }
 
         [Authorize(Policy = "Cliente")]
         [HttpPost]
-        public async Task<IActionResult> Cadastrar([FromBody] AgendamentoDTO dto)
+        public async Task<IActionResult> Cadastrar([FromBody] CriarAgendamentoDTO dto)
         {
-            var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
-
+            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var novo = await _servico.Cadastrar(usuarioId, dto);
 
             return CreatedAtAction(nameof(Buscar), new { Id = novo.Id }, new
@@ -60,8 +65,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-
-        [Authorize]
+        [Authorize(Policy = "Barbeiro")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] AgendamentoDTO dto)
         {
@@ -81,11 +85,7 @@ namespace BarbeariaPortifolio.API.Controllers
                 throw new AppException("Agendamento não encontrado.", 404);
 
             return Ok(new { mensagem = "Status do agendamento atualizado com sucesso." });
-
         }
-
-
-
 
         [Authorize(Policy = "AdminOuBarbeiro")]
         [HttpDelete("{id}")]
@@ -94,7 +94,7 @@ namespace BarbeariaPortifolio.API.Controllers
             var excluido = await _servico.Excluir(id);
             if (!excluido)
                 throw new AppException("Agendamento não encontrado.", 404);
-                
+
             return Ok(new { mensagem = "Agendamento excluído com sucesso." });
         }
     }

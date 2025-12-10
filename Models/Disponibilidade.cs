@@ -15,4 +15,7 @@ public class Disponibilidade
     public DateTime DataCriacao { get; set; }
 
     public Barbeiro Barbeiro { get; set; } = null!;
+
+   
+    public Agendamento? Agendamento { get; set; }
 }

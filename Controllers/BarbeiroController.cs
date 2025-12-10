@@ -1,10 +1,11 @@
-﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
+﻿
 using BarbeariaPortifolio.API.DTOs;
+using BarbeariaPortifolio.API.Exceptions;
+using BarbeariaPortifolio.API.Servicos.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BarbeariaPortifolio.API.Exceptions;
 
-namespace BarbeariaPortifolio.API.Controllers
+namespace BarbeariaPortifilio.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -17,8 +18,6 @@ namespace BarbeariaPortifolio.API.Controllers
             _servico = servico;
         }
 
-
-
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Listar()
@@ -27,22 +26,23 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(lista);
         }
 
-
         [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Buscar(int id)
         {
             var item = await _servico.BuscarPorId(id);
-            if (item == null) 
+            if (item == null)
                 throw new AppException("Barbeiro não encontrado.", 404);
+
             return Ok(item);
         }
 
         [Authorize(Policy = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> Cadastrar([FromBody] BarbeiroDTO dto)
+        public async Task<IActionResult> Cadastrar([FromBody] CriarBarbeiroDTO dto)
         {
             var novo = await _servico.Cadastrar(dto);
+
             return CreatedAtAction(nameof(Buscar), new { id = novo.Id }, new
             {
                 mensagem = "Barbeiro cadastrado com sucesso.",
@@ -52,11 +52,13 @@ namespace BarbeariaPortifolio.API.Controllers
 
         [Authorize(Policy = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Atualizar(int id, [FromBody] BarbeiroDTO dto)
+        public async Task<IActionResult> Atualizar(int id, [FromBody] CriarBarbeiroDTO dto)
         {
             var ok = await _servico.Atualizar(id, dto);
-            if(!ok)
+
+            if (!ok)
                 throw new AppException("Barbeiro não encontrado.", 404);
+
             return Ok(new { mensagem = "Barbeiro atualizado com sucesso." });
         }
 
@@ -65,8 +67,10 @@ namespace BarbeariaPortifolio.API.Controllers
         public async Task<IActionResult> Excluir(int id)
         {
             var ok = await _servico.Excluir(id);
+
             if (!ok)
                 throw new AppException("Barbeiro não encontrado.", 404);
+
             return Ok(new { mensagem = "Barbeiro excluído com sucesso." });
         }
     }

@@ -14,7 +14,6 @@ public class DisponibilidadeServico : IDisponibilidadeServico
         _repositorio = repositorio;
     }
 
-    // ✅ CRIAR OU REATIVAR SLOT
     public async Task CriarDisponibilidadeAsync(int barbeiroId, CriarDisponibilidadeDto dto)
     {
         if (dto.Data < DateOnly.FromDateTime(DateTime.UtcNow))
@@ -23,14 +22,12 @@ public class DisponibilidadeServico : IDisponibilidadeServico
         if (string.IsNullOrWhiteSpace(dto.Hora))
             throw new AppException("Hora é obrigatória", 400);
 
-        // ✅ VERIFICA SE JÁ EXISTE O SLOT
         var existente = await _repositorio.Disponibilidades.FirstOrDefaultAsync(x =>
             x.BarbeiroId == barbeiroId &&
             x.Data == dto.Data &&
             x.Hora == dto.Hora
         );
 
-        // ✅ SE EXISTE → REATIVA
         if (existente != null)
         {
             existente.Ativo = true;
@@ -38,7 +35,6 @@ public class DisponibilidadeServico : IDisponibilidadeServico
             return;
         }
 
-        // ✅ SE NÃO EXISTE → CRIA NOVO
         var disponibilidade = new Disponibilidade
         {
             BarbeiroId = barbeiroId,
@@ -52,7 +48,6 @@ public class DisponibilidadeServico : IDisponibilidadeServico
         await _repositorio.SaveChangesAsync();
     }
 
-    // ✅ LISTAR DISPONIBILIDADES PÚBLICAS (CLIENTE)
     public async Task<IEnumerable<DisponibilidadeResponseDto>> ListarDisponibilidadesPublicasAsync(int barbeiroId, DateOnly data)
     {
         return await _repositorio.Disponibilidades
@@ -72,7 +67,6 @@ public class DisponibilidadeServico : IDisponibilidadeServico
             .ToListAsync();
     }
 
-    // ✅ LISTAR TODAS AS DISPONIBILIDADES DO BARBEIRO (ATIVAS + INATIVAS)
     public async Task<IEnumerable<DisponibilidadeResponseDto>> ListarDisponibilidadesDoBarbeiroAsync(int barbeiroId, DateOnly data)
     {
         return await _repositorio.Disponibilidades
@@ -91,7 +85,6 @@ public class DisponibilidadeServico : IDisponibilidadeServico
             .ToListAsync();
     }
 
-    // ✅ ATIVAR / INATIVAR SLOT
     public async Task AtualizarStatusAsync(int disponibilidadeId, bool ativo, int barbeiroId)
     {
         var disponibilidade = await _repositorio.Disponibilidades
@@ -105,5 +98,39 @@ public class DisponibilidadeServico : IDisponibilidadeServico
 
         disponibilidade.Ativo = ativo;
         await _repositorio.SaveChangesAsync();
+    }
+
+    public async Task<bool> ReservarSlotAsync(int barbeiroId, DateOnly data, string hora)
+    {
+        var slot = await _repositorio.Disponibilidades.FirstOrDefaultAsync(x =>
+            x.BarbeiroId == barbeiroId &&
+            x.Data == data &&
+            x.Hora == hora &&
+            x.Ativo
+        );
+
+        if (slot == null)
+            return false;
+
+        slot.Ativo = false;
+        await _repositorio.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> LiberarSlotAsync(int barbeiroId, DateOnly data, string hora)
+    {
+        var slot = await _repositorio.Disponibilidades.FirstOrDefaultAsync(x =>
+            x.BarbeiroId == barbeiroId &&
+            x.Data == data &&
+            x.Hora == hora &&
+            !x.Ativo
+        );
+
+        if (slot == null)
+            return false;
+
+        slot.Ativo = true;
+        await _repositorio.SaveChangesAsync();
+        return true;
     }
 }

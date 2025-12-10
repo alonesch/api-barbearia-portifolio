@@ -6,8 +6,8 @@ namespace BarbeariaPortifolio.API.Servicos.Interfaces
     {
         Task<IEnumerable<BarbeiroDTO>> ListarTodos();
         Task<BarbeiroDTO?> BuscarPorId(int id);
-        Task<BarbeiroDTO> Cadastrar(BarbeiroDTO barbeiro);
-        Task<bool> Atualizar(int id, BarbeiroDTO barbeiro);
+        Task<BarbeiroDTO> Cadastrar(CriarBarbeiroDTO dto);
+        Task<bool> Atualizar(int id, CriarBarbeiroDTO dto);
         Task<bool> Excluir(int id);
     }
 }

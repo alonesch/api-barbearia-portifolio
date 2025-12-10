@@ -56,12 +56,20 @@ namespace BarbeariaPortifolio.API.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-
-
             modelBuilder.Entity<EmailConfirmacaoToken>()
                 .HasOne(e => e.Usuario)
                 .WithMany()
                 .HasForeignKey(e => e.UsuarioId);
+
+            modelBuilder.Entity<Agendamento>()
+                .HasOne(a => a.Disponibilidade)
+                .WithOne(d => d.Agendamento)
+                .HasForeignKey<Agendamento>(a => a.DisponibilidadeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Agendamento>()
+                .HasIndex(a => a.DisponibilidadeId)
+                .IsUnique();
         }
     }
 }

@@ -33,7 +33,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(usuario);
         }
 
-        [Authorize(Policy = "Admin")]
+        //[Authorize(Policy = "AdminOuBarbeiro")]
         [HttpPost]
         public async Task<IActionResult> Cadastrar([FromBody] Usuario usuario)
         {

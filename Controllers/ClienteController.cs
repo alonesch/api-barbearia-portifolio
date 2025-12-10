@@ -1,9 +1,10 @@
 ﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.API.DTOs;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using BarbeariaPortifolio.API.Exceptions;
 using BarbeariaPortifolio.API.Servicos;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BarbeariaPortifolio.API.Controllers;
 
@@ -23,21 +24,21 @@ public class ClienteController : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
-        var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
+        var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         return Ok(await _servico.BuscarPorUsuario(usuarioId));
     }
 
     [HttpPost("me")]
     public async Task<IActionResult> CriarPerfil([FromBody] ClienteDTO dto)
     {
-        var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
+        var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         return Ok(await _servico.CriarPerfil(usuarioId, dto));
     }
 
     [HttpPut("me")]
     public async Task<IActionResult> AtualizarPerfil([FromBody] ClienteDTO dto)
     {
-        var usuarioId = int.Parse(User.FindFirst("userId")!.Value);
+        var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         await _servico.AtualizarPerfil(usuarioId, dto);
         return Ok(new { mensagem = "Perfil de cliente atualizado com sucesso." });
     }

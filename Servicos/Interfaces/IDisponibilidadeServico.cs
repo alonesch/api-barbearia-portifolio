@@ -15,4 +15,7 @@ public interface IDisponibilidadeServico
     );
 
     Task AtualizarStatusAsync(int disponibilidadeId, bool ativo, int barbeiroId);
+
+    Task<bool> ReservarSlotAsync(int barbeiroId, DateOnly data, string hora);
+    Task<bool> LiberarSlotAsync(int barbeiroId, DateOnly data, string hora);
 }

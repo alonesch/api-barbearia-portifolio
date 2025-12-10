@@ -74,7 +74,7 @@ namespace BarbeariaPortifolio.API.Servicos
             };
         }
 
-        public async Task<BarbeiroDTO> Cadastrar(BarbeiroDTO dto)
+        public async Task<BarbeiroDTO> Cadastrar(CriarBarbeiroDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Nome))
                 throw new AppException("O nome do barbeiro é obrigatório.", 400);
@@ -85,16 +85,23 @@ namespace BarbeariaPortifolio.API.Servicos
             var barbeiro = new Barbeiro
             {
                 Nome = dto.Nome,
-                Telefone = dto.Telefone
+                Telefone = dto.Telefone,
+                UsuarioId = dto.UsuarioId
             };
 
             await _repositorio.Cadastrar(barbeiro);
-            dto.Id = barbeiro.Id;
 
-            return dto;
+            return new BarbeiroDTO
+            {
+                Id = barbeiro.Id,
+                Nome = barbeiro.Nome,
+                Telefone = barbeiro.Telefone,
+                Usuario = barbeiro.Usuario?.NomeUsuario,
+                Agendamentos = new List<AgendamentoDTO>()
+            };
         }
 
-        public async Task<bool> Atualizar(int id, BarbeiroDTO dto)
+        public async Task<bool> Atualizar(int id, CriarBarbeiroDTO dto)
         {
             var existente = await _repositorio.BuscarPorId(id);
             if (existente == null) return false;
@@ -107,6 +114,7 @@ namespace BarbeariaPortifolio.API.Servicos
 
             existente.Nome = dto.Nome;
             existente.Telefone = dto.Telefone;
+            existente.UsuarioId = dto.UsuarioId;
 
             return await _repositorio.Atualizar(id, existente);
         }

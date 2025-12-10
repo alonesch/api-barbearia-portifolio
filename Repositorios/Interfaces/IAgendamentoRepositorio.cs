@@ -7,15 +7,15 @@ namespace BarbeariaPortifolio.API.Repositorios.Interfaces
         Task<IEnumerable<Agendamento>> ListarTodos();
         Task<Agendamento?> BuscarPorId(int id);
         Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId);
+        Task<IEnumerable<Agendamento>> ListarPorUsuario(int usuarioId);
 
         Task<Agendamento> Cadastrar(Agendamento agendamento);
         Task<bool> Atualizar(Agendamento agendamento);
         Task<bool> Excluir(int id);
 
-        Task CadastrarAgendamentoServico(AgendamentoServico item);
-
         Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora);
 
+        Task CadastrarAgendamentoServico(AgendamentoServico item);
         Task<Agendamento?> BuscarStatusId(int id);
         Task AlterarStatus(Agendamento agendamento);
     }

@@ -9,7 +9,6 @@ public class Agendamento
     [Key]
     public int Id { get; set; }
 
-    
     [ForeignKey("Usuario")]
     public int UsuarioId { get; set; }
     public Usuario Usuario { get; set; } = null!;
@@ -18,6 +17,12 @@ public class Agendamento
     public int BarbeiroId { get; set; }
     public Barbeiro Barbeiro { get; set; } = null!;
 
+   
+    [ForeignKey("Disponibilidade")]
+    public int DisponibilidadeId { get; set; }
+
+    
+    public Disponibilidade Disponibilidade { get; set; } = null!;
 
     [Column(TypeName = "timestamp with time zone")]
     public DateTime DataHora { get; set; }

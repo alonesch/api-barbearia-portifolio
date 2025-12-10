@@ -17,11 +17,11 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task<IEnumerable<Agendamento>> ListarTodos()
         {
             return await _repositorio.Agendamentos
-                .Include(a => a.Usuario) // ✅ em vez de Cliente
+                .Include(a => a.Usuario)
                 .Include(a => a.Barbeiro)
+                .Include(a => a.Disponibilidade)
                 .Include(a => a.AgendamentoServicos)
-                    .ThenInclude(asg => asg.Servico)
-                .AsNoTracking()
+                    .ThenInclude(s => s.Servico)
                 .ToListAsync();
         }
 
@@ -30,8 +30,9 @@ namespace BarbeariaPortifolio.API.Repositorios
             return await _repositorio.Agendamentos
                 .Include(a => a.Usuario)
                 .Include(a => a.Barbeiro)
+                .Include(a => a.Disponibilidade)
                 .Include(a => a.AgendamentoServicos)
-                    .ThenInclude(asg => asg.Servico)
+                    .ThenInclude(s => s.Servico)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
@@ -40,32 +41,33 @@ namespace BarbeariaPortifolio.API.Repositorios
             return await _repositorio.Agendamentos
                 .Where(a => a.BarbeiroId == barbeiroId)
                 .Include(a => a.Usuario)
-                .Include(a => a.Barbeiro)
+                .Include(a => a.Disponibilidade)
                 .Include(a => a.AgendamentoServicos)
-                    .ThenInclude(asg => asg.Servico)
-                .AsNoTracking()
+                    .ThenInclude(s => s.Servico)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Agendamento>> ListarPorUsuario(int usuarioId)
+        {
+            return await _repositorio.Agendamentos
+                .Where(a => a.UsuarioId == usuarioId)
+                .Include(a => a.Usuario)
+                .Include(a => a.Barbeiro)
+                .Include(a => a.Disponibilidade)
+                .Include(a => a.AgendamentoServicos)
+                    .ThenInclude(s => s.Servico)
                 .ToListAsync();
         }
 
         public async Task<Agendamento> Cadastrar(Agendamento agendamento)
         {
             _repositorio.Agendamentos.Add(agendamento);
-            await _repositorio.SaveChangesAsync();
             return agendamento;
-        }
-
-        public async Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora)
-        {
-            return await _repositorio.Agendamentos.AnyAsync(
-                a => a.BarbeiroId == barbeiroId &&
-                     a.DataHora == dataHora.ToUniversalTime()
-            );
         }
 
         public async Task<bool> Atualizar(Agendamento agendamento)
         {
             _repositorio.Agendamentos.Update(agendamento);
-            await _repositorio.SaveChangesAsync();
             return true;
         }
 
@@ -75,14 +77,18 @@ namespace BarbeariaPortifolio.API.Repositorios
             if (agendamento == null) return false;
 
             _repositorio.Agendamentos.Remove(agendamento);
-            await _repositorio.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora)
+        {
+            return await _repositorio.Agendamentos
+                .AnyAsync(a => a.BarbeiroId == barbeiroId && a.DataHora == dataHora);
         }
 
         public async Task CadastrarAgendamentoServico(AgendamentoServico item)
         {
             _repositorio.AgendamentoServicos.Add(item);
-            await _repositorio.SaveChangesAsync();
         }
 
         public async Task<Agendamento?> BuscarStatusId(int id)
@@ -94,7 +100,6 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task AlterarStatus(Agendamento agendamento)
         {
             _repositorio.Agendamentos.Update(agendamento);
-            await _repositorio.SaveChangesAsync();
         }
     }
 }
