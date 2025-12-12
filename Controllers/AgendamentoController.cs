@@ -87,6 +87,18 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(new { mensagem = "Status do agendamento atualizado com sucesso." });
         }
 
+        [Authorize(Policy ="Cliente")]
+        [HttpPatch("{id}/cancelar")]
+
+        public async Task<IActionResult> Cancelar(int id)
+        {
+            var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            await _servico.CancelarAgendamento(id, usuarioId);
+
+            return Ok(new { mensagem = "Agendamento cancelado com sucesso." });
+
+
         [Authorize(Policy = "AdminOuBarbeiro")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)

@@ -206,5 +206,32 @@ namespace BarbeariaPortifolio.API.Servicos
                 }).ToList()
             };
         }
+
+        public async Task CancelarAgendamento(int id, int usuarioId)
+        {
+            var agendamento = await _context.Agendamentos
+                .Include(a => a.Disponibilidade)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (agendamento == null)
+                throw new AppException("Agendamento não encontrado.", 404);
+
+            if (agendamento.UsuarioId != usuarioId)
+                throw new AppException("Você não pode cancer um agendamento de outro cliente.", 403);
+
+            if (agendamento.DataHora <= DateTime.UtcNow)
+                throw new AppException("Não é possivel cancelar após o horario marcado.", 400);
+
+            if (agendamento.Status == 5)
+                throw new AppException("Agendamentos concluidos não podem ser cancelados.", 400);
+
+            agendamento.Status = 3;
+
+            if (agendamento.Disponibilidade != null)
+                agendamento.Disponibilidade.Ativo = true;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
+//
