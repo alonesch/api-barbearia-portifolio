@@ -128,16 +128,25 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // =======================================================================
-// DATABASE
+// DATABASE  ✅ AJUSTADO (APENAS AQUI)
 // =======================================================================
-var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+var env = builder.Environment.EnvironmentName;
 
-var pgConnection = builder.Configuration.GetConnectionString("Postgres")
-    ?? Environment.GetEnvironmentVariable(
-        envApp == "Development" ? "POSTGRES_CONNECTION_DEV" : "POSTGRES_CONNECTION");
+Console.WriteLine($"[BOOT] ASPNETCORE_ENVIRONMENT = {env}");
+Console.WriteLine($"[BOOT] POSTGRES_CONNECTION_DEV = [{Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_DEV")}]");
+Console.WriteLine($"[BOOT] POSTGRES_CONNECTION = [{Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")}]");
+
+var pgConnection =
+    Environment.GetEnvironmentVariable(
+        env == Environments.Development
+            ? "POSTGRES_CONNECTION_DEV"
+            : "POSTGRES_CONNECTION"
+    );
 
 if (string.IsNullOrWhiteSpace(pgConnection))
-    throw new Exception("String de conexão Postgres não encontrada!");
+{
+    throw new Exception($"String de conexão Postgres não encontrada para ambiente: {env}");
+}
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(pgConnection));
@@ -235,7 +244,7 @@ if (app.Environment.IsDevelopment())
 // =======================================================================
 app.UseRouting();
 
-app.UseCors(envApp == "Development" ? "dev" : "prd");
+app.UseCors(env == Environments.Development ? "dev" : "prd");
 
 // Security Headers
 app.Use(async (context, next) =>
@@ -258,7 +267,7 @@ app.MapGet("/ping", () => Results.Ok("pong"));
 // CONTROLLERS
 app.MapControllers();
 
-Console.WriteLine($"Ambiente ativo: {envApp}");
+Console.WriteLine($"Ambiente ativo: {env}");
 
 // =======================================================================
 // RUN
