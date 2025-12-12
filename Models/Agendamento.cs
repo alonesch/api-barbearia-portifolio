@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using BarbeariaPortifolio.API.Models.Enums;
 
 namespace BarbeariaPortifolio.API.Models;
 
@@ -27,7 +28,7 @@ public class Agendamento
     [Column(TypeName = "timestamp with time zone")]
     public DateTime DataHora { get; set; }
 
-    public int Status { get; set; }
+    public StatusAgendamento Status {  get; set; }
 
     [Column(TypeName = "timestamp with time zone")]
     public DateTime DataRegistro { get; set; } = DateTime.UtcNow;

@@ -1,6 +1,7 @@
 ﻿using BarbeariaPortifolio.API.DTOs;
 using BarbeariaPortifolio.API.Exceptions;
 using BarbeariaPortifolio.API.Models;
+using BarbeariaPortifolio.API.Models.Enums;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.API.Data;
@@ -28,7 +29,6 @@ namespace BarbeariaPortifolio.API.Servicos
         public async Task<AgendamentoDTO> BuscarPorId(int id)
         {
             var agendamento = await _repositorio.BuscarPorId(id);
-
             if (agendamento == null)
                 throw new AppException("Agendamento não encontrado.", 404);
 
@@ -86,7 +86,7 @@ namespace BarbeariaPortifolio.API.Servicos
                     DisponibilidadeId = slot.Id,
                     DataHora = dataHoraUtc,
                     DataRegistro = DateTime.UtcNow,
-                    Status = 1,
+                    Status = StatusAgendamento.Pendente,
                     Observacao = dto.Observacao
                 };
 
@@ -101,14 +101,12 @@ namespace BarbeariaPortifolio.API.Servicos
                     if (!servicoExiste)
                         throw new AppException("Serviço inválido.", 400);
 
-                    var item = new AgendamentoServico
+                    _context.AgendamentoServicos.Add(new AgendamentoServico
                     {
                         AgendamentoId = agendamento.Id,
                         ServicoId = s.ServicoId,
                         Observacao = s.Observacao
-                    };
-
-                    _context.AgendamentoServicos.Add(item);
+                    });
                 }
 
                 await _context.SaveChangesAsync();
@@ -126,7 +124,7 @@ namespace BarbeariaPortifolio.API.Servicos
                     Email = usuario.Email,
                     BarbeiroId = agendamento.BarbeiroId,
                     DataHora = agendamento.DataHora,
-                    Status = agendamento.Status,
+                    Status = (int)agendamento.Status,
                     Observacao = agendamento.Observacao,
                     AgendamentoServicos = dto.AgendamentoServicos
                 };
@@ -141,12 +139,14 @@ namespace BarbeariaPortifolio.API.Servicos
         public async Task<bool> Atualizar(int id, AgendamentoDTO dto)
         {
             var agendamento = await _repositorio.BuscarPorId(id);
-
             if (agendamento == null)
                 throw new AppException("Agendamento não encontrado.", 404);
 
+            if (!Enum.IsDefined(typeof(StatusAgendamento), dto.Status))
+                throw new AppException("Status inválido.", 400);
+
             agendamento.DataHora = dto.DataHora.ToUniversalTime();
-            agendamento.Status = dto.Status;
+            agendamento.Status = (StatusAgendamento)dto.Status;
             agendamento.Observacao = dto.Observacao;
 
             await _context.SaveChangesAsync();
@@ -156,20 +156,48 @@ namespace BarbeariaPortifolio.API.Servicos
         public async Task<bool> AlterarStatus(int id, int novoStatus)
         {
             var agendamento = await _repositorio.BuscarStatusId(id);
-
             if (agendamento == null)
                 throw new AppException("Agendamento não encontrado.", 404);
 
-            agendamento.Status = novoStatus;
+            if (!Enum.IsDefined(typeof(StatusAgendamento), novoStatus))
+                throw new AppException("Status inválido.", 400);
+
+            agendamento.Status = (StatusAgendamento)novoStatus;
 
             await _context.SaveChangesAsync();
             return true;
         }
 
+        public async Task CancelarAgendamento(int id, int usuarioId)
+        {
+            var agendamento = await _context.Agendamentos
+                .Include(a => a.Disponibilidade)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (agendamento == null)
+                throw new AppException("Agendamento não encontrado.", 404);
+
+            if (agendamento.UsuarioId != usuarioId)
+                throw new AppException("Você não pode cancelar um agendamento de outro cliente.", 403);
+
+            if (agendamento.DataHora <= DateTime.UtcNow)
+                throw new AppException("Não é possível cancelar após o horário marcado.", 400);
+
+            if (agendamento.Status != StatusAgendamento.Pendente &&
+                agendamento.Status != StatusAgendamento.Confirmado)
+                throw new AppException("Este agendamento não pode mais ser cancelado.", 400);
+
+            agendamento.Status = StatusAgendamento.Cancelado;
+
+            if (agendamento.Disponibilidade != null)
+                agendamento.Disponibilidade.Ativo = true;
+
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<bool> Excluir(int id)
         {
             var agendamento = await _repositorio.BuscarPorId(id);
-
             if (agendamento == null)
                 throw new AppException("Agendamento não encontrado.", 404);
 
@@ -197,7 +225,7 @@ namespace BarbeariaPortifolio.API.Servicos
                 Email = a.Usuario.Email,
                 BarbeiroId = a.BarbeiroId,
                 DataHora = a.DataHora,
-                Status = a.Status,
+                Status = (int)a.Status,
                 Observacao = a.Observacao,
                 AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
                 {
@@ -206,32 +234,5 @@ namespace BarbeariaPortifolio.API.Servicos
                 }).ToList()
             };
         }
-
-        public async Task CancelarAgendamento(int id, int usuarioId)
-        {
-            var agendamento = await _context.Agendamentos
-                .Include(a => a.Disponibilidade)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (agendamento == null)
-                throw new AppException("Agendamento não encontrado.", 404);
-
-            if (agendamento.UsuarioId != usuarioId)
-                throw new AppException("Você não pode cancelar um agendamento de outro cliente.", 403);
-
-            if (agendamento.DataHora <= DateTime.UtcNow)
-                throw new AppException("Não é possivel cancelar após ter passado do horário marcado.", 400);
-
-            if (agendamento.Status != 1 && agendamento.Status != 2)
-                throw new AppException("Este agendamento não pode mais ser cancelado.", 400);
-
-            agendamento.Status = 3;
-
-            if (agendamento.Disponibilidade != null)
-                agendamento.Disponibilidade.Ativo = true;
-
-            await _context.SaveChangesAsync();
-        }
     }
 }
-//
