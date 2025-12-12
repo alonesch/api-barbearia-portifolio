@@ -83,7 +83,10 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora)
         {
             return await _repositorio.Agendamentos
-                .AnyAsync(a => a.BarbeiroId == barbeiroId && a.DataHora == dataHora);
+                .AnyAsync(a =>
+                a.BarbeiroId == barbeiroId
+                && a.DataHora == dataHora
+                && (a.Status == 1 || a.Status == 2));
         }
 
         public async Task CadastrarAgendamentoServico(AgendamentoServico item)

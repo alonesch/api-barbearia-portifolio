@@ -282,6 +282,16 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+
+    await next();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -291,7 +301,7 @@ app.MapGet("/ping", () => Results.Ok("pong"));
 // CONTROLLERS
 app.MapControllers();
 
-Console.WriteLine($"🌍 Ambiente ativo: {envApp}");
+Console.WriteLine($"Ambiente ativo: {envApp}");
 
 // =======================================================================
 // RUN APP
