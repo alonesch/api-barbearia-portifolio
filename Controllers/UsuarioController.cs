@@ -46,7 +46,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] Usuario usuario)
         {
@@ -58,7 +58,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(new { mensagem = "Usuário atualizado com sucesso." });
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)
         {

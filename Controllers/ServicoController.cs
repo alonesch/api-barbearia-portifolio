@@ -38,7 +38,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(servico);
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Cadastrar([FromBody] ServicoDTO dto)
         {
@@ -51,7 +51,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] ServicoDTO dto)
         {
@@ -62,7 +62,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(new { mensagem = "Serviço atualizado com sucesso." });
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)
         {

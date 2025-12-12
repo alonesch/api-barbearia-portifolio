@@ -22,27 +22,24 @@ namespace BarbeariaPortifolio.API.Controllers
         [HttpGet]
         public async Task<IActionResult> Listar()
         {
-            var agendamentos = await _servico.ListarTodos();
-            return Ok(agendamentos);
+            return Ok(await _servico.ListarTodos());
         }
 
         [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Buscar(int id)
         {
-            var agendamento = await _servico.BuscarPorId(id);
-            return Ok(agendamento);
+            return Ok(await _servico.BuscarPorId(id));
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("barbeiro/{id}")]
         public async Task<IActionResult> ListarPorBarbeiro(int id)
         {
-            var agendamentos = await _servico.ListarPorBarbeiro(id);
-            return Ok(agendamentos);
+            return Ok(await _servico.ListarPorBarbeiro(id));
         }
 
-        [Authorize(Policy = "Cliente")]
+        [Authorize(Roles = "Cliente")]
         [HttpGet("me")]
         public async Task<IActionResult> ListarMeus([FromQuery] int? page, [FromQuery] int? pageSize)
         {
@@ -50,21 +47,17 @@ namespace BarbeariaPortifolio.API.Controllers
 
             if (page.HasValue)
             {
-                var resultado = await _servico.ListarPorUsuarioPaginado(
+                return Ok(await _servico.ListarPorUsuarioPaginado(
                     usuarioId,
                     page.Value,
                     pageSize ?? 10
-                );
-
-                return Ok(resultado);
+                ));
             }
 
-            var agendamentos = await _servico.ListarPorUsuario(usuarioId);
-            return Ok(agendamentos);
+            return Ok(await _servico.ListarPorUsuario(usuarioId));
         }
 
-
-        [Authorize(Policy = "Cliente")]
+        [Authorize(Roles = "Cliente")]
         [HttpPost]
         public async Task<IActionResult> Cadastrar([FromBody] CriarAgendamentoDTO dto)
         {
@@ -78,14 +71,11 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-        [Authorize(Policy = "Barbeiro")]
+        [Authorize(Roles = "Barbeiro")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Atualizar(int id, [FromBody] AgendamentoDTO dto)
         {
-            var atualizado = await _servico.Atualizar(id, dto);
-            if (!atualizado)
-                throw new AppException("Agendamento não encontrado.", 404);
-
+            await _servico.Atualizar(id, dto);
             return Ok(new { mensagem = "Agendamento atualizado com sucesso." });
         }
 
@@ -93,20 +83,15 @@ namespace BarbeariaPortifolio.API.Controllers
         [HttpPatch("status/{id}")]
         public async Task<IActionResult> AlterarStatus(int id, [FromBody] StatusDTO dto)
         {
-            var alterado = await _servico.AlterarStatus(id, dto.Status);
-            if (!alterado)
-                throw new AppException("Agendamento não encontrado.", 404);
-
+            await _servico.AlterarStatus(id, dto.Status);
             return Ok(new { mensagem = "Status do agendamento atualizado com sucesso." });
         }
 
-        [Authorize(Policy = "Cliente")]
+        [Authorize(Roles = "Cliente")]
         [HttpPatch("{id}/cancelar")]
-
         public async Task<IActionResult> Cancelar(int id)
         {
             var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
             await _servico.CancelarAgendamento(id, usuarioId);
 
             return Ok(new { mensagem = "Agendamento cancelado com sucesso." });
@@ -116,10 +101,7 @@ namespace BarbeariaPortifolio.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)
         {
-            var excluido = await _servico.Excluir(id);
-            if (!excluido)
-                throw new AppException("Agendamento não encontrado.", 404);
-
+            await _servico.Excluir(id);
             return Ok(new { mensagem = "Agendamento excluído com sucesso." });
         }
     }

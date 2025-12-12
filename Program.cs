@@ -1,7 +1,6 @@
 using BarbeariaPortifolio.API.Auth;
 using BarbeariaPortifolio.API.Data;
 using BarbeariaPortifolio.API.Middleware;
-using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos;
@@ -13,16 +12,13 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Threading.RateLimiting;
 
-
-
-
 // =======================================================================
 // BUILDER
 // =======================================================================
 var builder = WebApplication.CreateBuilder(args);
 
 // =======================================================================
-// SWAGGER
+// CONTROLLERS + SWAGGER
 // =======================================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -37,7 +33,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Cole aqui o token {seu_token}"
+        Description = "Cole aqui o token JWT"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -60,93 +56,10 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // =======================================================================
-// JWT CONFIG
+// JWT
 // =======================================================================
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Admin", p => p.RequireClaim("cargo", "Admin"));
-    options.AddPolicy("Barbeiro", p => p.RequireClaim("cargo", "Barbeiro"));
-    options.AddPolicy("Cliente", p => p.RequireClaim("cargo", "Cliente"));
-
-    options.AddPolicy("AdminOuBarbeiro", policy =>
-        policy.RequireAssertion(ctx =>
-        {
-            var cargo = ctx.User.FindFirst("cargo")?.Value;
-            return cargo == "Admin" || cargo == "Barbeiro";
-        })
-    );
-});
-
-// =======================================================================
-// RATE LIMITING
-// =======================================================================
-builder.Services.AddRateLimiter(options =>
-{
-    options.AddPolicy("LoginPolicy", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: key => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5, // 5 tentativas por minuto por IP
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
-            })
-    );
-
-    options.OnRejected = async (context, _) =>
-    {
-        Console.WriteLine($"[RateLimit] IP bloqueado: {context.HttpContext.Connection.RemoteIpAddress}");
-
-        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        context.HttpContext.Response.ContentType = "application/json";
-
-        var json = """{ "erro": "Muitas tentativas. Aguarde 1 minuto para tentar novamente." }""";
-
-        await context.HttpContext.Response.WriteAsync(json);
-    };
-
-});
-
-
-
-// =======================================================================
-// DATABASE
-// =======================================================================
-var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-
-var pgConnection = builder.Configuration.GetConnectionString("Postgres");
-
-if (string.IsNullOrWhiteSpace(pgConnection))
-{
-    pgConnection = Environment.GetEnvironmentVariable(
-        envApp == "Development" ? "POSTGRES_CONNECTION_DEV" : "POSTGRES_CONNECTION");
-}
-
-if (string.IsNullOrWhiteSpace(pgConnection))
-{
-    throw new Exception("String de conexão 'Postgres' não encontrada!");
-}
-
-builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(pgConnection));
-
-// =======================================================================
-// JWT AUTHENTICATION
-// =======================================================================
-var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
-var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
-
-if (string.IsNullOrWhiteSpace(keyValue))
-{
-    Console.WriteLine("❌ Nenhuma chave JWT encontrada!");
-    Environment.Exit(1);
-}
-
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
 
 builder.Services
     .AddAuthentication(options =>
@@ -158,6 +71,7 @@ builder.Services
     {
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -166,12 +80,67 @@ builder.Services
             ValidateLifetime = true,
             RequireSignedTokens = true,
             RequireExpirationTime = true,
-            ValidIssuer = jwt.Issuer,
-            ValidAudience = jwt.Audience,
-            IssuerSigningKey = key,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            ),
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
+
+// =======================================================================
+// AUTHORIZATION (ROLES)
+// =======================================================================
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOuBarbeiro", policy =>
+        policy.RequireRole("Admin", "Barbeiro")
+    );
+});
+
+// =======================================================================
+// RATE LIMITING (LOGIN)
+// =======================================================================
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("LoginPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            })
+    );
+
+    options.OnRejected = async (context, _) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        await context.HttpContext.Response.WriteAsync(
+            """{ "erro": "Muitas tentativas. Aguarde 1 minuto para tentar novamente." }"""
+        );
+    };
+});
+
+// =======================================================================
+// DATABASE
+// =======================================================================
+var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+var pgConnection = builder.Configuration.GetConnectionString("Postgres")
+    ?? Environment.GetEnvironmentVariable(
+        envApp == "Development" ? "POSTGRES_CONNECTION_DEV" : "POSTGRES_CONNECTION");
+
+if (string.IsNullOrWhiteSpace(pgConnection))
+    throw new Exception("String de conexão Postgres não encontrada!");
+
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseNpgsql(pgConnection));
 
 // =======================================================================
 // CORS
@@ -215,7 +184,7 @@ builder.Services.AddScoped<IEmailConfirmacaoTokenRepositorio, EmailConfirmacaoTo
 builder.Services.AddScoped<IEmailServico, EmailServico>();
 
 // =======================================================================
-// KESTREL OPTIMIZATION
+// KESTREL
 // =======================================================================
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -224,39 +193,12 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
 });
 
-ThreadPool.SetMinThreads(100, 100);
 builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // =======================================================================
-// BUILD APP
+// BUILD
 // =======================================================================
 var app = builder.Build();
-
-// =======================================================================
-// DEBUG REQUEST LOGGING (DEV ONLY)
-// =======================================================================
-if (app.Environment.IsDevelopment())
-{
-    app.Use(async (context, next) =>
-    {
-        try
-        {
-            Console.WriteLine($"🔵 REQUEST: {context.Request.Method} {context.Request.Path}");
-            await next();
-            Console.WriteLine($"✅ RESPONSE: {context.Response.StatusCode}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(" EXCEÇÃO NÃO TRATADA:");
-            Console.WriteLine($"Message: {ex.Message}");
-            Console.WriteLine($"Type: {ex.GetType().Name}");
-            Console.WriteLine($"InnerException: {ex.InnerException?.Message}");
-            Console.WriteLine($"StackTrace: {ex.StackTrace}");
-            Console.WriteLine("==========================================");
-            throw;
-        }
-    });
-}
 
 // =======================================================================
 // GLOBAL ERROR HANDLER
@@ -264,7 +206,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<TratamentoDeErros>();
 
 // =======================================================================
-// APPLY MIGRATIONS ON BOOT
+// MIGRATIONS ON STARTUP
 // =======================================================================
 using (var scope = app.Services.CreateScope())
 {
@@ -275,12 +217,12 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine($" Erro ao aplicar migrations: {ex.Message}");
+        Console.WriteLine($"Erro ao aplicar migrations: {ex.Message}");
     }
 }
 
 // =======================================================================
-// SWAGGER (DEV ONLY)
+// SWAGGER (DEV)
 // =======================================================================
 if (app.Environment.IsDevelopment())
 {
@@ -289,23 +231,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // =======================================================================
-// MIDDLEWARE PIPELINE
+// PIPELINE
 // =======================================================================
 app.UseRouting();
 
 app.UseCors(envApp == "Development" ? "dev" : "prd");
-
-// Ignorar OPTIONS
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
-    await next();
-});
 
 // Security Headers
 app.Use(async (context, next) =>
@@ -314,13 +244,9 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
-
     await next();
 });
 
-// =======================================================================
-// RATE LIMITER MIDDLEWARE
-// =======================================================================
 app.UseRateLimiter();
 
 app.UseAuthentication();

@@ -8,8 +8,6 @@
 
         // usado pelo access token (em horas)
         public int ExpiresInHours { get; set; } = 2;
-
-        // o que faltava no seu erro:
         public int RefreshTokenDays { get; set; } = 7;
     }
 }

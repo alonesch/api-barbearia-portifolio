@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using BarbeariaPortifolio.API.Models;
+using BarbeariaPortifolio.API.Models.Enums;
 
 namespace BarbeariaPortifolio.API.Data
 {
@@ -32,7 +33,7 @@ namespace BarbeariaPortifolio.API.Data
 
             modelBuilder.Entity<Agendamento>()
                 .Property(a => a.Status)
-                .HasDefaultValue(1);
+                .HasDefaultValue(StatusAgendamento.Pendente);
 
             modelBuilder.Entity<Barbeiro>()
                 .HasOne(b => b.Usuario)

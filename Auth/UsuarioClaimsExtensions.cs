@@ -10,12 +10,7 @@ namespace BarbeariaPortifolio.API.Auth
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.NomeUsuario),
-
-               
-                new Claim("cargo", user.Cargo),
-
-                new Claim("nomeCompleto", user.NomeCompleto ?? "")
+                new Claim(ClaimTypes.Role, user.Cargo)
             };
 
             if (barbeiroId.HasValue)
