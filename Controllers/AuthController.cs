@@ -3,6 +3,8 @@ using BarbeariaPortifolio.API.Exceptions;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
+
 
 namespace BarbeariaPortifolio.API.Controllers
 {
@@ -67,6 +69,7 @@ namespace BarbeariaPortifolio.API.Controllers
         }
 
         // ✅ LOGIN
+        [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)

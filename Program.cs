@@ -11,6 +11,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Threading.RateLimiting;
+
+
+
 
 // =======================================================================
 // BUILDER
@@ -51,34 +55,62 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    
     c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
     c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
 });
 
-
-
+// =======================================================================
+// JWT CONFIG
+// =======================================================================
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Admin", policy =>
-        policy.RequireClaim("cargo", "Admin"));
-
-    options.AddPolicy("Barbeiro", policy =>
-        policy.RequireClaim("cargo", "Barbeiro"));
-
-    options.AddPolicy("Cliente", policy =>
-        policy.RequireClaim("cargo", "Cliente"));
+    options.AddPolicy("Admin", p => p.RequireClaim("cargo", "Admin"));
+    options.AddPolicy("Barbeiro", p => p.RequireClaim("cargo", "Barbeiro"));
+    options.AddPolicy("Cliente", p => p.RequireClaim("cargo", "Cliente"));
 
     options.AddPolicy("AdminOuBarbeiro", policy =>
         policy.RequireAssertion(ctx =>
         {
             var cargo = ctx.User.FindFirst("cargo")?.Value;
             return cargo == "Admin" || cargo == "Barbeiro";
-        }));
+        })
+    );
 });
+
+// =======================================================================
+// RATE LIMITING
+// =======================================================================
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("LoginPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: key => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5, // 5 tentativas por minuto por IP
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            })
+    );
+
+    options.OnRejected = async (context, _) =>
+    {
+        Console.WriteLine($"[RateLimit] IP bloqueado: {context.HttpContext.Connection.RemoteIpAddress}");
+
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        var json = """{ "erro": "Muitas tentativas. Aguarde 1 minuto para tentar novamente." }""";
+
+        await context.HttpContext.Response.WriteAsync(json);
+    };
+
+});
+
 
 
 // =======================================================================
@@ -103,7 +135,7 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(pgConnection));
 
 // =======================================================================
-// JWT
+// JWT AUTHENTICATION
 // =======================================================================
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
 var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
@@ -146,23 +178,21 @@ builder.Services
 // =======================================================================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("prd", policy =>
-        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
-    );
+    options.AddPolicy("prd", p =>
+        p.WithOrigins("https://barbearia-gabriel-port.vercel.app")
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials());
 
-    options.AddPolicy("dev", policy =>
-        policy.WithOrigins(
-                "https://dev-barbearia-gabriel-port.vercel.app",
-                "http://localhost:5173",
-                "http://localhost:3000"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-    );
+    options.AddPolicy("dev", p =>
+        p.WithOrigins(
+            "https://dev-barbearia-gabriel-port.vercel.app",
+            "http://localhost:5173",
+            "http://localhost:3000"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 // =======================================================================
@@ -195,7 +225,6 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 ThreadPool.SetMinThreads(100, 100);
-
 builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // =======================================================================
@@ -204,7 +233,7 @@ builder.WebHost.UseUrls("http://0.0.0.0:8080");
 var app = builder.Build();
 
 // =======================================================================
-// ERROR HANDLING DEBUG (DEV only)
+// DEBUG REQUEST LOGGING (DEV ONLY)
 // =======================================================================
 if (app.Environment.IsDevelopment())
 {
@@ -218,7 +247,7 @@ if (app.Environment.IsDevelopment())
         }
         catch (Exception ex)
         {
-            Console.WriteLine("🔥 EXCEÇÃO NÃO TRATADA:");
+            Console.WriteLine(" EXCEÇÃO NÃO TRATADA:");
             Console.WriteLine($"Message: {ex.Message}");
             Console.WriteLine($"Type: {ex.GetType().Name}");
             Console.WriteLine($"InnerException: {ex.InnerException?.Message}");
@@ -230,17 +259,12 @@ if (app.Environment.IsDevelopment())
 }
 
 // =======================================================================
-// ERROR HANDLING
+// GLOBAL ERROR HANDLER
 // =======================================================================
 app.UseMiddleware<TratamentoDeErros>();
 
 // =======================================================================
-// ERROR HANDLING
-// =======================================================================
-app.UseMiddleware<TratamentoDeErros>();
-
-// =======================================================================
-// MIGRATIONS ON BOOT
+// APPLY MIGRATIONS ON BOOT
 // =======================================================================
 using (var scope = app.Services.CreateScope())
 {
@@ -251,12 +275,12 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Erro ao aplicar migrations: {ex.Message}");
+        Console.WriteLine($" Erro ao aplicar migrations: {ex.Message}");
     }
 }
 
 // =======================================================================
-// SWAGGER (DEV only)
+// SWAGGER (DEV ONLY)
 // =======================================================================
 if (app.Environment.IsDevelopment())
 {
@@ -271,6 +295,7 @@ app.UseRouting();
 
 app.UseCors(envApp == "Development" ? "dev" : "prd");
 
+// Ignorar OPTIONS
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
@@ -282,6 +307,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// Security Headers
 app.Use(async (context, next) =>
 {
     context.Response.Headers["X-Frame-Options"] = "DENY";
@@ -291,6 +317,11 @@ app.Use(async (context, next) =>
 
     await next();
 });
+
+// =======================================================================
+// RATE LIMITER MIDDLEWARE
+// =======================================================================
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -304,6 +335,6 @@ app.MapControllers();
 Console.WriteLine($"Ambiente ativo: {envApp}");
 
 // =======================================================================
-// RUN APP
+// RUN
 // =======================================================================
 app.Run();
