@@ -87,7 +87,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(new { mensagem = "Status do agendamento atualizado com sucesso." });
         }
 
-        [Authorize(Policy ="Cliente")]
+        [Authorize(Policy = "Cliente")]
         [HttpPatch("{id}/cancelar")]
 
         public async Task<IActionResult> Cancelar(int id)
@@ -97,7 +97,7 @@ namespace BarbeariaPortifolio.API.Controllers
             await _servico.CancelarAgendamento(id, usuarioId);
 
             return Ok(new { mensagem = "Agendamento cancelado com sucesso." });
-
+        }
 
         [Authorize(Policy = "AdminOuBarbeiro")]
         [HttpDelete("{id}")]

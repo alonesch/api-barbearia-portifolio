@@ -14,5 +14,7 @@ namespace BarbeariaPortifolio.API.Servicos.Interfaces
         Task<bool> Atualizar(int id, AgendamentoDTO dto);
         Task<bool> Excluir(int id);
         Task<bool> AlterarStatus(int id, int novoStatus);
+
+        Task CancelarAgendamento(int id, int usuarioId);
     }
 }
