@@ -1,23 +1,23 @@
-﻿{
-  "$schema": "https://json.schemastore.org/launchsettings.json",
+{
   "profiles": {
     "http": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:5186",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5186"
     },
     "https": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://localhost:7247;http://localhost:5186",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "POSTGRES_CONNECTION_DEV": "Host=dpg-d4np08h5pdvs73ab069g-a.ohio-postgres.render.com;Port=5432;Database=dev_barber_db;Username=aloneitaporra;Password=N630LJKZMPCV1CaafNYGiYvfKBM44jp5;SSL Mode=Require;Trust Server Certificate=true;",
+        "Jwt__Key": "ed37890d495b58f741bee71a6009d278fce1420d95ae7614"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7247;http://localhost:5186"
     }
-  }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
 }

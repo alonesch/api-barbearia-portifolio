@@ -25,7 +25,7 @@ public class DisponibilidadeController : ControllerBase
         return Ok(new { mensagem = "Disponibilidade criada com sucesso." });
     }
 
-    [Authorize(Policy = "AdminOuBarbeiro")]
+    [Authorize]
     [HttpGet("barbeiro/{barbeiroId}")]
     public async Task<IActionResult> ListarPorData(
     int barbeiroId,
