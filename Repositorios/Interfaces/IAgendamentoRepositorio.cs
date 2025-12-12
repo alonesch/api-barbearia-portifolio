@@ -18,5 +18,6 @@ namespace BarbeariaPortifolio.API.Repositorios.Interfaces
         Task CadastrarAgendamentoServico(AgendamentoServico item);
         Task<Agendamento?> BuscarStatusId(int id);
         Task AlterarStatus(Agendamento agendamento);
+        IQueryable<Agendamento> QueryPorUsuario(int usuarioId);
     }
 }

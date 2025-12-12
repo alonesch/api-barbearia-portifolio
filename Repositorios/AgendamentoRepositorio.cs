@@ -1,5 +1,6 @@
 ﻿using BarbeariaPortifolio.API.Data;
 using BarbeariaPortifolio.API.Models;
+using BarbeariaPortifolio.API.Models.Enums;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -86,7 +87,7 @@ namespace BarbeariaPortifolio.API.Repositorios
                 .AnyAsync(a =>
                 a.BarbeiroId == barbeiroId
                 && a.DataHora == dataHora
-                && (a.Status == 1 || a.Status == 2));
+                && (a.Status == StatusAgendamento.Pendente || a.Status == StatusAgendamento.Confirmado));
         }
 
         public async Task CadastrarAgendamentoServico(AgendamentoServico item)
@@ -103,6 +104,17 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task AlterarStatus(Agendamento agendamento)
         {
             _repositorio.Agendamentos.Update(agendamento);
+        }
+
+        public IQueryable<Agendamento> QueryPorUsuario(int usuarioId)
+        {
+            return _repositorio.Agendamentos
+                .Where(a => a.UsuarioId == usuarioId)
+                .Include( a=> a.Usuario)
+                .Include(a => a.Barbeiro)
+                .Include(a => a.Disponibilidade)
+                .Include(a => a.AgendamentoServicos)
+                    .ThenInclude(s => s.Servico);
         }
     }
 }

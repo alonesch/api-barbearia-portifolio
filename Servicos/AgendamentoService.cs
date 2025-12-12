@@ -234,5 +234,35 @@ namespace BarbeariaPortifolio.API.Servicos
                 }).ToList()
             };
         }
+        public async Task<PagedResultDTO<AgendamentoDTO>> ListarPorUsuarioPaginado(int usuarioId, int page, int pageSize)
+        {
+            if (page < 1)
+                throw new AppException("Página inválida.", 400);
+
+            if (pageSize < 1)
+                pageSize = 10;
+
+            if (pageSize > 30)
+                pageSize = 30;
+
+            var query = _repositorio.QueryPorUsuario(usuarioId)
+                .OrderByDescending(a => a.DataHora);
+
+            var total = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResultDTO<AgendamentoDTO>
+            {
+                Total = total,
+                Page = page,
+                PageSize = pageSize,
+                Items = items.Select(MapToDto)
+            };
+        }
+
     }
 }

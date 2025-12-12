@@ -44,12 +44,25 @@ namespace BarbeariaPortifolio.API.Controllers
 
         [Authorize(Policy = "Cliente")]
         [HttpGet("me")]
-        public async Task<IActionResult> ListarMeus()
+        public async Task<IActionResult> ListarMeus([FromQuery] int? page, [FromQuery] int? pageSize)
         {
             var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            if (page.HasValue)
+            {
+                var resultado = await _servico.ListarPorUsuarioPaginado(
+                    usuarioId,
+                    page.Value,
+                    pageSize ?? 10
+                );
+
+                return Ok(resultado);
+            }
+
             var agendamentos = await _servico.ListarPorUsuario(usuarioId);
             return Ok(agendamentos);
         }
+
 
         [Authorize(Policy = "Cliente")]
         [HttpPost]

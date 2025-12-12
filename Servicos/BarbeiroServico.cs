@@ -2,6 +2,7 @@
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.API.DTOs;
 using BarbeariaPortifolio.API.Models;
+
 using BarbeariaPortifolio.API.Exceptions;
 
 namespace BarbeariaPortifolio.API.Servicos
@@ -33,7 +34,7 @@ namespace BarbeariaPortifolio.API.Servicos
                     Email = a.Usuario.Email,
                     BarbeiroId = a.BarbeiroId,
                     DataHora = a.DataHora,
-                    Status = a.Status,
+                    Status = (int)a.Status,
                     Observacao = a.Observacao,
                     AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
                     {
@@ -63,7 +64,7 @@ namespace BarbeariaPortifolio.API.Servicos
                     Email = a.Usuario.Email,
                     BarbeiroId = a.BarbeiroId,
                     DataHora = a.DataHora,
-                    Status = a.Status,
+                    Status = (int)a.Status,
                     Observacao = a.Observacao,
                     AgendamentoServicos = a.AgendamentoServicos.Select(s => new AgendamentoServicoDTO
                     {
