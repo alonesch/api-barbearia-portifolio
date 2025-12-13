@@ -3,6 +3,7 @@ using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.DTOs.Disponibilidade;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using BarbeariaPortifolio.API.Exceptions;
+using BarbeariaPortifolio.API.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 
 public class DisponibilidadeServico : IDisponibilidadeServico
@@ -22,19 +23,40 @@ public class DisponibilidadeServico : IDisponibilidadeServico
         if (string.IsNullOrWhiteSpace(dto.Hora))
             throw new AppException("Hora é obrigatória", 400);
 
-        var existente = await _repositorio.Disponibilidades.FirstOrDefaultAsync(x =>
-            x.BarbeiroId == barbeiroId &&
-            x.Data == dto.Data &&
-            x.Hora == dto.Hora
-        );
+        var existente = await _repositorio.Disponibilidades
+            .FirstOrDefaultAsync(x =>
+                x.BarbeiroId == barbeiroId &&
+                x.Data == dto.Data &&
+                x.Hora == dto.Hora
+            );
 
+        // ============================
+        // 🔴 SLOT JÁ EXISTE
+        // ============================
         if (existente != null)
         {
+            // 🚫 NÃO pode reativar se existir agendamento pendente ou confirmado
+            var possuiAgendamentoAtivo = await _repositorio.Agendamentos
+                .AnyAsync(a =>
+                    a.DisponibilidadeId == existente.Id &&
+                    (a.Status == StatusAgendamento.Pendente ||
+                     a.Status == StatusAgendamento.Confirmado)
+                );
+
+            if (possuiAgendamentoAtivo)
+                throw new AppException(
+                    "Horário possui agendamento ativo e não pode ser reativado.",
+                    409
+                );
+
             existente.Ativo = true;
             await _repositorio.SaveChangesAsync();
             return;
         }
 
+        // ============================
+        // 🟢 SLOT NOVO
+        // ============================
         var disponibilidade = new Disponibilidade
         {
             BarbeiroId = barbeiroId,
@@ -95,6 +117,23 @@ public class DisponibilidadeServico : IDisponibilidadeServico
 
         if (disponibilidade == null)
             throw new AppException("Disponibilidade não encontrada", 404);
+
+        // 🚫 Bloqueia reativação manual se houver agendamento ativo
+        if (ativo)
+        {
+            var possuiAgendamentoAtivo = await _repositorio.Agendamentos
+                .AnyAsync(a =>
+                    a.DisponibilidadeId == disponibilidade.Id &&
+                    (a.Status == StatusAgendamento.Pendente ||
+                     a.Status == StatusAgendamento.Confirmado)
+                );
+
+            if (possuiAgendamentoAtivo)
+                throw new AppException(
+                    "Horário possui agendamento ativo e não pode ser reativado.",
+                    409
+                );
+        }
 
         disponibilidade.Ativo = ativo;
         await _repositorio.SaveChangesAsync();

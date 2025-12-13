@@ -1,41 +1,88 @@
-.vs/
-.vscode/
-bin/
-obj/
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-Debug/
-Release/
-x64/
-x86/
-ARM/
-ARM64/
-*.log
-*.tlog
-*.vsidx
-*.db
-*.cache
-*.pidb
-*.tmp
-*.bak
-*.old
-*.orig
+﻿# ===============================
+# 🔐 SENSITIVE DATA / SECRETS
+# ===============================
+
+# Environment variables
 .env
 .env.*
+!.env.example
+
+# Appsettings com segredos
 appsettings.Development.json
+appsettings.Staging.json
 appsettings.Production.json
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-.DS_Store
-node_modules/
-dist/
-build/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-__pycache__/
+appsettings.*.json
+
+# Overrides locais
+appsettings.local.json
+appsettings.Local.json
+
+# User secrets (ASP.NET)
+secrets.json
+**/secrets.json
+
+# Certificados / chaves
+*.pfx
+*.pem
+*.key
+*.crt
+*.cer
+
+# JWT / OAuth / API Keys
+jwt.*
+token.*
+apikey.*
+api-key.*
+client_secret*
+client-secret*
+
+# SSH
+id_rsa
+id_rsa.pub
+*.ppk
+
+# -------------------------------
+# 🗄️ DATABASE / BACKUP
+# -------------------------------
+
+*.sql
+*.dump
+*.bak
+*.backup
+*.db
+*.sqlite
+
+# -------------------------------
+# 🐳 DOCKER / INFRA
+# -------------------------------
+
+docker-compose.override.yml
+docker-compose.local.yml
+
+# -------------------------------
+# 📦 BUILD / CACHE (safety)
+# -------------------------------
+
+bin/
+obj/
+.vs/
 .idea/
-*.iml
+
+# -------------------------------
+# 📝 LOGS
+# -------------------------------
+
+*.log
+
+# -------------------------------
+# 🧪 TEST OUTPUT
+# -------------------------------
+
+TestResults/
+
+# -------------------------------
+# 🚫 TEMP / OS
+# -------------------------------
+
+.DS_Store
+Thumbs.db

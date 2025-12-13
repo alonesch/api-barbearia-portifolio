@@ -64,9 +64,10 @@ namespace BarbeariaPortifolio.API.Data
 
             modelBuilder.Entity<Agendamento>()
                 .HasOne(a => a.Disponibilidade)
-                .WithOne(d => d.Agendamento)
-                .HasForeignKey<Agendamento>(a => a.DisponibilidadeId)
+                .WithMany(d => d.Agendamentos)
+                .HasForeignKey(a => a.DisponibilidadeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             modelBuilder.Entity<Agendamento>()
                 .HasIndex(a => a.DisponibilidadeId)

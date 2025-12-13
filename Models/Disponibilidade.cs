@@ -16,6 +16,7 @@ public class Disponibilidade
 
     public Barbeiro Barbeiro { get; set; } = null!;
 
-   
-    public Agendamento? Agendamento { get; set; }
+    
+    public ICollection<Agendamento> Agendamentos { get; set; }
+        = new List<Agendamento>();
 }

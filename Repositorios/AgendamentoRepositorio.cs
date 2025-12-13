@@ -81,14 +81,18 @@ namespace BarbeariaPortifolio.API.Repositorios
             return true;
         }
 
-        public async Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora)
+        public async Task<bool> ChecarHorarios(int barbeiroId, DateTime dataHora, int disponibilidadeId)
         {
             return await _repositorio.Agendamentos
                 .AnyAsync(a =>
-                a.BarbeiroId == barbeiroId
-                && a.DataHora == dataHora
-                && (a.Status == StatusAgendamento.Pendente || a.Status == StatusAgendamento.Confirmado));
+                    a.BarbeiroId == barbeiroId &&
+                    a.DataHora == dataHora &&
+                    a.DisponibilidadeId != disponibilidadeId && // 🔑 CHAVE DA CORREÇÃO
+                    (a.Status == StatusAgendamento.Pendente ||
+                     a.Status == StatusAgendamento.Confirmado)
+                );
         }
+
 
         public async Task CadastrarAgendamentoServico(AgendamentoServico item)
         {
@@ -110,7 +114,7 @@ namespace BarbeariaPortifolio.API.Repositorios
         {
             return _repositorio.Agendamentos
                 .Where(a => a.UsuarioId == usuarioId)
-                .Include( a=> a.Usuario)
+                .Include(a => a.Usuario)
                 .Include(a => a.Barbeiro)
                 .Include(a => a.Disponibilidade)
                 .Include(a => a.AgendamentoServicos)

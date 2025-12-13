@@ -20,10 +20,10 @@ public class Agendamento
 
    
     [ForeignKey("Disponibilidade")]
-    public int DisponibilidadeId { get; set; }
+    public int? DisponibilidadeId { get; set; }
 
     
-    public Disponibilidade Disponibilidade { get; set; } = null!;
+    public Disponibilidade? Disponibilidade { get; set; } = null!;
 
     [Column(TypeName = "timestamp with time zone")]
     public DateTime DataHora { get; set; }

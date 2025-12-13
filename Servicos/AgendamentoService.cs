@@ -75,7 +75,8 @@ namespace BarbeariaPortifolio.API.Servicos
                     DateTimeKind.Utc
                 );
 
-                var conflito = await _repositorio.ChecarHorarios(slot.BarbeiroId, dataHoraUtc);
+                var conflito = await _repositorio.ChecarHorarios(slot.BarbeiroId,dataHoraUtc,slot.Id);
+
                 if (conflito)
                     throw new AppException("Horário já reservado!", 409);
 

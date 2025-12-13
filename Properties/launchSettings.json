@@ -3,7 +3,8 @@
     "http": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "POSTGRES_CONNECTION_DEV": "Host=dpg-d4np08h5pdvs73ab069g-a.ohio-postgres.render.com;Port=5432;Database=dev_barber_db;Username=aloneitaporra;Password=N630LJKZMPCV1CaafNYGiYvfKBM44jp5;SSL Mode=Require;Trust Server Certificate=true;"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5186"
