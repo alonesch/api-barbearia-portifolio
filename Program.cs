@@ -157,14 +157,14 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("prd", p =>
-        p.WithOrigins("https://barbearia-gabriel-port.vercel.app")
+        p.WithOrigins("https://www.barbercloud.online")
          .AllowAnyHeader()
          .AllowAnyMethod()
          .AllowCredentials());
 
     options.AddPolicy("dev", p =>
         p.WithOrigins(
-            "https://dev-barbearia-gabriel-port.vercel.app",
+            "https://dev.barbercloud.online",
             "http://localhost:5173",
             "http://localhost:3000"
         )
