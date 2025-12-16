@@ -7,14 +7,14 @@ services:
       dockerfile: Dockerfile
     container_name: barbearia_api
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      POSTGRES_CONNECTION: "Host=db;Port=5432;Username=postgres;Password=POSTGRES_FORTE_AQUI;Database=barbearia_db"
+      ASPNETCORE_ENVIRONMENT: Development
+      POSTGRES_CONNECTION_DEV: "Host=db;Port=5432;Username=barber_dev;Password=687312Muse*;Database=barbearia_dev"
       Jwt__Key: "jwt@Barbearia#2025!ApiSeguroMuitoForte1234567890"
     ports:
       - "8080:8080"
     depends_on:
       - db
-    restart: always
+    restart: "no"
 
   db:
     image: postgres:16
