@@ -212,7 +212,11 @@ var app = builder.Build();
 // =======================================================================
 // GLOBAL ERROR HANDLER
 // =======================================================================
-app.UseMiddleware<TratamentoDeErros>();
+app.UseWhen(
+    context => context.Request.Method != HttpMethods.Options,
+    appBuilder => appBuilder.UseMiddleware<TratamentoDeErros>()
+);
+
 
 // =======================================================================
 // MIGRATIONS ON STARTUP
