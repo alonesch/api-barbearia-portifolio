@@ -256,7 +256,10 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseRateLimiter();
+app.UseWhen(
+    context => context.Request.Method != HttpMethods.Options,
+    appBuilder => appBuilder.UseRateLimiter()
+    );
 
 app.UseAuthentication();
 app.UseAuthorization();
