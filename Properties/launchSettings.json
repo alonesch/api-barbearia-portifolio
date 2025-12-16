@@ -4,7 +4,7 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "POSTGRES_CONNECTION_DEV": "Host=localhost;Port=5433;Database=barbearia_db;Username=postgres;Password=POSTGRES_FORTE_AQUI"
+        "POSTGRES_CONNECTION_DEV": "Host=localhost;Port=5433;Database=barbearia_dev;Username=barber_dev;Password=687312Muse*"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5186"
@@ -13,7 +13,7 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "POSTGRES_CONNECTION_DEV": "Host=localhost;Port=5433;Database=barbearia_db;Username=postgres;Password=POSTGRES_FORTE_AQUI",
+        "POSTGRES_CONNECTION_DEV": "Host=localhost;Port=5433;Database=barbearia_dev;Username=barber_dev;Password=687312Muse*",
         "Jwt__Key": "ed37890d495b58f741bee71a6009d278fce1420d95ae7614"
       },
       "dotnetRunMessages": true,

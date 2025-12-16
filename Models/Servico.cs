@@ -16,6 +16,6 @@ public class Servico
     [Column(TypeName = "decimal(10,2)")]
     [Required]
     public decimal Preco { get; set; }
-
+    public int DuracaoServico { get; set; }
     public ICollection<AgendamentoServico>? AgendamentoServicos { get; set; }
 }

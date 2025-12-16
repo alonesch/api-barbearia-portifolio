@@ -23,7 +23,9 @@ namespace BarbeariaPortifolio.API.Servicos
             {
                 Id = s.Id,
                 NomeServico = s.NomeServico,
-                Preco = s.Preco
+                Preco = s.Preco,
+                DuracaoServico = s.DuracaoServico
+
             });
         }
 
