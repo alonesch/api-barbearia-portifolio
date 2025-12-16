@@ -37,16 +37,20 @@ namespace BarbeariaPortifolio.API.Repositorios
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
-        public async Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId)
+        public async Task<IEnumerable<Agendamento>> ListarHistoricoPorBarbeiro(int barbeiroId)
         {
             return await _repositorio.Agendamentos
-                .Where(a => a.BarbeiroId == barbeiroId)
+                .Where(a =>
+                    a.BarbeiroId == barbeiroId &&
+                    a.Status == StatusAgendamento.Concluido
+                )
                 .Include(a => a.Usuario)
                 .Include(a => a.Disponibilidade)
                 .Include(a => a.AgendamentoServicos)
                     .ThenInclude(s => s.Servico)
                 .ToListAsync();
         }
+
 
         public async Task<IEnumerable<Agendamento>> ListarPorUsuario(int usuarioId)
         {

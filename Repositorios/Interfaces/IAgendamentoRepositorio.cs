@@ -4,7 +4,7 @@ public interface IAgendamentoRepositorio
 {
     Task<IEnumerable<Agendamento>> ListarTodos();
     Task<Agendamento?> BuscarPorId(int id);
-    Task<IEnumerable<Agendamento>> ListarPorBarbeiro(int barbeiroId);
+    Task<IEnumerable<Agendamento>> ListarHistoricoPorBarbeiro(int barbeiroId);
     Task<IEnumerable<Agendamento>> ListarPorUsuario(int usuarioId);
 
     Task<Agendamento> Cadastrar(Agendamento agendamento);

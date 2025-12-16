@@ -7,13 +7,14 @@ services:
       dockerfile: Dockerfile
     container_name: barbearia_api
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      POSTGRES_CONNECTION_DEV: "Host=db;Port=5432;Username=postgres;Password=12345;Database=dev_barber_db"
-      Jwt__Key: "chave-super-secreta-dev"
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=postgres;Password=POSTGRES_FORTE_AQUI;Database=barbearia_db"
+      Jwt__Key: "JWT_FORTE_AQUI"
     ports:
       - "8080:8080"
     depends_on:
       - db
+    restart: always
 
   db:
     image: postgres:16
@@ -21,10 +22,8 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: dev_barber_db
-    ports:
-      - "5433:5432"
+      POSTGRES_PASSWORD: POSTGRES_FORTE_AQUI
+      POSTGRES_DB: barbearia_db
     volumes:
       - pgdata:/var/lib/postgresql/data
 

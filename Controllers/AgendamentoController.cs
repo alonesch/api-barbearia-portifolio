@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BarbeariaPortifolio.API.DTOs;
+using BarbeariaPortifolio.API.Exceptions;
+using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using BarbeariaPortifolio.API.DTOs;
-using BarbeariaPortifolio.API.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace BarbeariaPortifolio.API.Controllers
@@ -18,12 +19,27 @@ namespace BarbeariaPortifolio.API.Controllers
             _servico = servico;
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> Listar()
         {
             return Ok(await _servico.ListarTodos());
         }
+       
+
+        [Authorize(Policy = "AdminOuBarbeiro")]
+        [HttpGet("barbeiro/{barbeiroId}/data")]
+        public async Task<IActionResult> ListarPorBarbeiroEData(
+            int barbeiroId,
+            [FromQuery] string data)
+        {
+            if (!DateOnly.TryParse(data, out var dataConvertida))
+                throw new AppException("Data inválida.", 400);
+
+            var agendamentos = await _servico.ListarPorBarbeiroEData(barbeiroId, dataConvertida);
+            return Ok(agendamentos);
+        }
+
 
         [Authorize]
         [HttpGet("{id}")]
@@ -32,12 +48,14 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(await _servico.BuscarPorId(id));
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpGet("barbeiro/{id}")]
-        public async Task<IActionResult> ListarPorBarbeiro(int id)
+        [Authorize(Roles = "Barbeiro")]
+        [HttpGet("barbeiro/{barbeiroId}/historico")]
+        public async Task<IActionResult> ListarHistorico(int barbeiroId)
         {
-            return Ok(await _servico.ListarPorBarbeiro(id));
+            var resultado = await _servico.ListarHistoricoPorBarbeiro(barbeiroId);
+            return Ok(resultado);
         }
+
 
         [Authorize(Roles = "Cliente")]
         [HttpGet("me")]
