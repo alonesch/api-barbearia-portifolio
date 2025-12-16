@@ -8,8 +8,8 @@ services:
     container_name: barbearia_api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      POSTGRES_CONNECTION_DEV: "Host=db;Port=5432;Username=barber_dev;Password=687312Muse*;Database=barbearia_dev"
-      Jwt__Key: "jwt@Barbearia#2025!ApiSeguroMuitoForte1234567890"
+      POSTGRES_CONNECTION_DEV: ${POSTGRES_CONNECTION_DEV}
+      Jwt__Key: ${JWT_KEY}
     ports:
       - "8080:8080"
     depends_on:
@@ -22,7 +22,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: POSTGRES_FORTE_AQUI
+      POSTGRES_PASSWORD: ${POSTGRES_ROOT_PASSWORD}
       POSTGRES_DB: barbearia_db
     ports:
       - "127.0.0.1:5432:5432"
