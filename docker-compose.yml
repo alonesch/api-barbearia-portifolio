@@ -8,8 +8,8 @@ services:
     container_name: barbearia_api
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=postgres;Password=POSTGRES_FORTE_AQUI;Database=barbearia_db"
-      Jwt__Key: "JWT_FORTE_AQUI"
+      POSTGRES_CONNECTION: "Host=db;Port=5432;Username=postgres;Password=POSTGRES_FORTE_AQUI;Database=barbearia_db"
+      Jwt__Key: "jwt@Barbearia#2025!ApiSeguroMuitoForte1234567890"
     ports:
       - "8080:8080"
     depends_on:
