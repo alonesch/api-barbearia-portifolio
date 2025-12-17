@@ -59,20 +59,19 @@ namespace BarbeariaPortifolio.API.Controllers
 
         [Authorize(Roles = "Cliente")]
         [HttpGet("me")]
-        public async Task<IActionResult> ListarMeus([FromQuery] int? page, [FromQuery] int? pageSize)
+        public async Task<IActionResult> ListarMeus([FromQuery] int? page, [FromQuery] int? pagesize)
         {
             var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-            if (page.HasValue)
+            if(page.HasValue)
             {
-                return Ok(await _servico.ListarPorUsuarioPaginado(
-                    usuarioId,
+                return Ok(await _servico.ListarHistoricoPorUsuarioPaginado
+                    (usuarioId,
                     page.Value,
-                    pageSize ?? 10
-                ));
+                    pagesize ?? 10
+                    ));
             }
-
-            return Ok(await _servico.ListarPorUsuario(usuarioId));
+            return Ok(await _servico.ListarHistoricoPorUsuario(usuarioId));
         }
 
         [Authorize(Roles = "Cliente")]

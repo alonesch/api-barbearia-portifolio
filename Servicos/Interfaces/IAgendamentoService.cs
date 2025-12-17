@@ -11,7 +11,10 @@ namespace BarbeariaPortifolio.API.Servicos.Interfaces
         Task<IEnumerable<AgendamentoDTO>> ListarPorUsuario(int usuarioId);
         Task<PagedResultDTO<AgendamentoDTO>> ListarPorUsuarioPaginado(int usuarioId, int page, int pageSize);
 
-        // 🔥 HISTÓRICO COM DTO PRÓPRIO
+        Task<IEnumerable<AgendamentoHistoricoDTO>> ListarHistoricoPorUsuario(int usuarioId );
+
+        Task<PagedResultDTO<AgendamentoHistoricoDTO>> ListarHistoricoPorUsuarioPaginado( int usuarioId,int page,int pageSize);
+
         Task<IEnumerable<AgendamentoHistoricoDTO>> ListarHistoricoPorBarbeiro(int barbeiroId);
 
         Task<AgendamentoDTO> Cadastrar(int usuarioId, CriarAgendamentoDTO dto);

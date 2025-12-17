@@ -23,14 +23,53 @@ namespace BarbeariaPortifolio.API.Servicos
             _context = context;
         }
 
-        // =====================================================
-        // LISTAGENS PADRÃO
-        // =====================================================
-
         public async Task<IEnumerable<AgendamentoDTO>> ListarTodos()
         {
             var agendamentos = await _repositorio.ListarTodos();
             return agendamentos.Select(MapToDto);
+        }
+
+        public async Task<IEnumerable<AgendamentoHistoricoDTO>> ListarHistoricoPorUsuario(int usuarioId)
+        {
+            var agendamentos = await _repositorio.QueryPorUsuario(usuarioId)
+                .Include(a => a.Usuario)
+                .Include(a => a.AgendamentoServicos)
+                    .ThenInclude(s => s.Servico)
+                .OrderByDescending(a => a.DataHora)
+                .ToListAsync();
+
+            return agendamentos.Select(MapToHistoricoDto);
+
+        }
+
+        public async Task<PagedResultDTO<AgendamentoHistoricoDTO>> ListarHistoricoPorUsuarioPaginado(int usuarioId, int page, int pageSize)
+        {
+            if (page < 1)
+                throw new AppException("Página invalida", 400);
+
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 30) pageSize = 30;
+
+            var query = _repositorio.QueryPorUsuario(usuarioId)
+                .Include(a => a.Usuario)
+                .Include(a => a.AgendamentoServicos)
+                    .ThenInclude(s => s.Servico)
+                .OrderByDescending(a => a.DataHora);
+
+            var total = await query.CountAsync();
+            var items = await query
+                .Skip((page = 1) * pageSize)
+                .Take(pageSize) 
+                .ToListAsync();
+
+            return new PagedResultDTO<AgendamentoHistoricoDTO>
+            {
+                Total = total,
+                Page = page,
+                PageSize = pageSize,
+                Items = items.Select(MapToHistoricoDto)
+            };
+            
         }
 
         public async Task<IEnumerable<AgendamentoDTO>> ListarPorBarbeiroEData(
@@ -99,9 +138,6 @@ namespace BarbeariaPortifolio.API.Servicos
             };
         }
 
-        // =====================================================
-        // HISTÓRICO DO BARBEIRO
-        // =====================================================
 
         public async Task<IEnumerable<AgendamentoHistoricoDTO>> ListarHistoricoPorBarbeiro(
             int barbeiroId
@@ -111,9 +147,6 @@ namespace BarbeariaPortifolio.API.Servicos
             return agendamentos.Select(MapToHistoricoDto);
         }
 
-        // =====================================================
-        // CRIAÇÃO
-        // =====================================================
 
         public async Task<AgendamentoDTO> Cadastrar(
             int usuarioId,
@@ -212,9 +245,6 @@ namespace BarbeariaPortifolio.API.Servicos
             }
         }
 
-        // =====================================================
-        // STATUS / CANCELAMENTO / EXCLUSÃO
-        // =====================================================
 
         public async Task<bool> Atualizar(int id, AgendamentoDTO dto)
         {
@@ -290,9 +320,6 @@ namespace BarbeariaPortifolio.API.Servicos
             return true;
         }
 
-        // =====================================================
-        // MAPPERS
-        // =====================================================
 
         private static AgendamentoDTO MapToDto(Agendamento a)
         {
