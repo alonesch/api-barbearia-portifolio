@@ -21,11 +21,11 @@ namespace BarbeariaPortifolio.API.Controllers
 
         public class LoginRequest
         {
-            public string Usuario { get; set; } = string.Empty; // email OU username
+            public string Usuario { get; set; } = string.Empty; 
             public string Senha { get; set; } = string.Empty;
         }
 
-        // ✅ CONFIRMAÇÃO DE EMAIL
+        
         [HttpGet("confirmar-email")]
         [AllowAnonymous]
         public async Task<IActionResult> ConfirmarEmail([FromQuery] string token)
@@ -38,7 +38,7 @@ namespace BarbeariaPortifolio.API.Controllers
             return Ok(new { mensagem = "Email confirmado com sucesso." });
         }
 
-        // ✅ REGISTER
+        
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegistrarNovoClienteDTO dto)
@@ -68,7 +68,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-        // ✅ LOGIN
+  
         [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
         [AllowAnonymous]
@@ -106,7 +106,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-        // ✅ REENVIO DE CONFIRMAÇÃO (NEUTRO + SEGURO)
+        
         [HttpPost("reenviar-confirmacao")]
         [AllowAnonymous]
         public async Task<IActionResult> ReenviarConfirmacao([FromBody] ReenviarConfirmacaoEmailDto dto)

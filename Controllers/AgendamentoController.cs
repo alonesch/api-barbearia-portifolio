@@ -27,7 +27,7 @@ namespace BarbeariaPortifolio.API.Controllers
         }
        
 
-        [Authorize(Policy = "AdminOuBarbeiro")]
+        [Authorize]
         [HttpGet("barbeiro/{barbeiroId}/data")]
         public async Task<IActionResult> ListarPorBarbeiroEData(
             int barbeiroId,
