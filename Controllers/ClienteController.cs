@@ -22,11 +22,14 @@ public class ClienteController : ControllerBase
 
     [Authorize(Roles = "Cliente")]
     [HttpGet("me")]
+    
+    
     public async Task<IActionResult> Me()
     {
         var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         return Ok(await _servico.BuscarPorUsuario(usuarioId));
     }
+    
     [Authorize(Roles = "Cliente")]
     [HttpPost("me")]
     public async Task<IActionResult> CriarPerfil([FromBody] ClienteDTO dto)
@@ -34,6 +37,7 @@ public class ClienteController : ControllerBase
         var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         return Ok(await _servico.CriarPerfil(usuarioId, dto));
     }
+   
     [Authorize(Roles = "Cliente")]
     [HttpPut("me")]
     public async Task<IActionResult> AtualizarPerfil([FromBody] ClienteDTO dto)
