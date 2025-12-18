@@ -40,14 +40,12 @@ namespace BarbeariaPortifolio.API.Repositorios
         public async Task<IEnumerable<Agendamento>> ListarHistoricoPorBarbeiro(int barbeiroId)
         {
             return await _repositorio.Agendamentos
-                .Where(a =>
-                    a.BarbeiroId == barbeiroId &&
-                    a.Status == StatusAgendamento.Concluido
-                )
+                .Where(a =>a.BarbeiroId == barbeiroId)
                 .Include(a => a.Usuario)
                 .Include(a => a.Disponibilidade)
                 .Include(a => a.AgendamentoServicos)
                     .ThenInclude(s => s.Servico)
+                .OrderBy(a => a.DataHora)
                 .ToListAsync();
         }
 

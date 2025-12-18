@@ -149,9 +149,9 @@ namespace BarbeariaPortifolio.API.Servicos
 
 
         public async Task<AgendamentoDTO> Cadastrar(
-            int usuarioId,
-            CriarAgendamentoDTO dto
-        )
+    int usuarioId,
+    CriarAgendamentoDTO dto
+)
         {
             if (dto.DisponibilidadeId <= 0)
                 throw new AppException("Disponibilidade inválida.", 400);
@@ -172,8 +172,6 @@ namespace BarbeariaPortifolio.API.Servicos
 
             try
             {
-                slot.Ativo = false;
-
                 var dataHoraUtc = DateTime.SpecifyKind(
                     slot.Data.ToDateTime(TimeOnly.Parse(slot.Hora)),
                     DateTimeKind.Utc
@@ -187,6 +185,9 @@ namespace BarbeariaPortifolio.API.Servicos
 
                 if (conflito)
                     throw new AppException("Horário já reservado!", 409);
+
+                
+                slot.Ativo = false;
 
                 var agendamento = new Agendamento
                 {
@@ -244,6 +245,7 @@ namespace BarbeariaPortifolio.API.Servicos
                 throw;
             }
         }
+
 
 
         public async Task<bool> Atualizar(int id, AgendamentoDTO dto)
