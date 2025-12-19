@@ -7,6 +7,8 @@ namespace BarbeariaPortifolio.API.Servicos.Interfaces
         Task<IEnumerable<AgendamentoDTO>> ListarTodos();
         Task<IEnumerable<AgendamentoDTO>> ListarPorBarbeiroEData(int barbeiroId, DateOnly data);
         Task<AgendamentoDTO> BuscarPorId(int id);
+        Task<ClienteStatsDTO> BuscarStatsCliente(int id);
+        Task<BarbeiroStatsDTO> BuscarStatsBarbeiro(int id);
 
         Task<IEnumerable<AgendamentoDTO>> ListarPorUsuario(int usuarioId);
         Task<PagedResultDTO<AgendamentoDTO>> ListarPorUsuarioPaginado(int usuarioId, int page, int pageSize);

@@ -360,5 +360,39 @@ namespace BarbeariaPortifolio.API.Servicos
                 ValorTotal = a.AgendamentoServicos.Sum(s => s.Servico.Preco)
             };
         }
+        public async Task<ClienteStatsDTO> BuscarStatsCliente(int usuarioId)
+        {
+            var agendamentos = await _repositorio
+                .QueryPorUsuario(usuarioId)
+                .Where(a => a.Status == StatusAgendamento.Concluido)
+                .Include(a => a.AgendamentoServicos)
+                    .ThenInclude(s => s.Servico)
+                .ToListAsync();
+
+            return new ClienteStatsDTO
+            {
+                TotalCortes = agendamentos.Count,
+                TotalGasto = agendamentos
+                    .Sum(a => a.AgendamentoServicos.Sum(s => s.Servico.Preco)),
+                AvaliacaoMedia = 5.0 // mock controlado
+            };
+        }
+        public async Task<BarbeiroStatsDTO> BuscarStatsBarbeiro(int barbeiroId)
+        {
+            var agendamentos = await _repositorio
+                .ListarHistoricoPorBarbeiro(barbeiroId);
+
+            var total = agendamentos.Count();
+            var concluidos = agendamentos.Count(a => a.Status == StatusAgendamento.Concluido);
+
+            return new BarbeiroStatsDTO
+            {
+                TotalAtendimentos = total,
+                AvaliacaoMedia = 5.0,
+                TaxaConclusao = total == 0 ? 0 : Math.Round((double)concluidos / total * 100, 0)
+            };
+        }
+
+
     }
 }
