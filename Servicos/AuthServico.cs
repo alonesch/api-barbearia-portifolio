@@ -4,6 +4,7 @@ using BarbeariaPortifolio.API.Exceptions;
 using BarbeariaPortifolio.API.Models;
 using BarbeariaPortifolio.API.Repositorios.Interfaces;
 using BarbeariaPortifolio.API.Servicos.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace BarbeariaPortifolio.API.Servicos
@@ -17,6 +18,7 @@ namespace BarbeariaPortifolio.API.Servicos
         private readonly IBarbeiroRepositorio _barbeiros;
         private readonly IEmailConfirmacaoTokenRepositorio _emailTokens;
         private readonly IEmailServico _emailServico;
+        private readonly IConfiguration _config;
 
         public AuthServico(
             IUsuarioRepositorio usuarios,
@@ -25,17 +27,23 @@ namespace BarbeariaPortifolio.API.Servicos
             IEmailConfirmacaoTokenRepositorio emailTokens,
             IEmailServico emailServico,
             TokenService tokenService,
-            IOptions<JwtOptions> jwt)
+            IOptions<JwtOptions> jwt,
+            IConfiguration config
+        )
         {
             _usuarios = usuarios;
-            _refreshTokens = refreshTokens;
-            _tokenService = tokenService;
-            _jwt = jwt.Value;
             _barbeiros = barbeiros;
+            _refreshTokens = refreshTokens;
             _emailTokens = emailTokens;
             _emailServico = emailServico;
+            _tokenService = tokenService;
+            _jwt = jwt.Value;
+            _config = config;
         }
 
+        // ======================================================
+        // REGISTRO
+        // ======================================================
         public async Task<Usuario> RegistrarAsync(RegistrarNovoClienteDTO dto)
         {
             if (string.IsNullOrWhiteSpace(dto.NomeCompleto))
@@ -87,11 +95,16 @@ namespace BarbeariaPortifolio.API.Servicos
 
             await _emailTokens.CriarAsync(confirmacao);
 
-            await _emailServico.EnviarEmailConfirmacaoAsync(usuario, token);
+            var link = $"{_config["FRONTEND_URL"]}/confirmar-email?token={token}";
+
+            await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
 
             return usuario;
         }
 
+        // ======================================================
+        // LOGIN
+        // ======================================================
         public async Task<(string accessToken, string refreshToken, Usuario usuario)>
             LoginAsync(string login, string senha)
         {
@@ -119,6 +132,9 @@ namespace BarbeariaPortifolio.API.Servicos
             return (accessToken, refreshRaw, user);
         }
 
+        // ======================================================
+        // TOKEN
+        // ======================================================
         public async Task<string> GerarAccessToken(Usuario usuario)
         {
             var barbeiroId = await BuscarBarbeiroId(usuario.Id);
@@ -147,12 +163,18 @@ namespace BarbeariaPortifolio.API.Servicos
             await _refreshTokens.Salvar(rt);
         }
 
+        // ======================================================
+        // AUX
+        // ======================================================
         public async Task<int?> BuscarBarbeiroId(int usuarioId)
         {
             var barbeiro = await _barbeiros.BuscarUsuarioId(usuarioId);
             return barbeiro?.Id;
         }
 
+        // ======================================================
+        // EMAIL - REENVIO
+        // ======================================================
         public async Task ReenviarConfirmacaoEmailAsync(ReenviarConfirmacaoEmailDto dto)
         {
             var email = dto.Email.Trim().ToLowerInvariant();
@@ -178,15 +200,20 @@ namespace BarbeariaPortifolio.API.Servicos
                 UsuarioId = usuario.Id,
                 Token = Guid.NewGuid().ToString("N"),
                 CriadoEm = DateTime.UtcNow,
-                ExpiraEm = DateTime.UtcNow.AddHours(1),
+                ExpiraEm = DateTime.UtcNow.AddHours(24),
                 Usado = false
             };
 
             await _emailTokens.CriarAsync(novoToken);
 
-            await _emailServico.EnviarEmailConfirmacaoAsync(usuario, novoToken.Token);
+            var link = $"{_config["FRONTEND_URL"]}/confirmar-email?token={novoToken.Token}";
+
+            await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
         }
 
+        // ======================================================
+        // EMAIL - CONFIRMAR
+        // ======================================================
         public async Task ConfirmarEmailAsync(string token)
         {
             var confirmacao = await _emailTokens.BuscarPorTokenAsync(token);
