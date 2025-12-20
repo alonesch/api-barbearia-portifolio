@@ -1,33 +1,16 @@
-version: "3.9"
-
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: barbearia_api
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      POSTGRES_CONNECTION_DEV: ${POSTGRES_CONNECTION_DEV}
-      Jwt__Key: ${JWT_KEY}
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-    restart: "no"
-
-  db:
+  postgres:
     image: postgres:16
-    container_name: barbearia_db
-    restart: always
+    container_name: barbearia_postgres_local
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_ROOT_PASSWORD}
-      POSTGRES_DB: barbearia_db
+      TZ: America/Sao_Paulo
     ports:
-      - "127.0.0.1:5432:5432"
+      - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  postgres_data:

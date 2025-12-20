@@ -21,5 +21,6 @@ namespace BarbeariaPortifolio.API.Servicos.Interfaces
         Task ReenviarConfirmacaoEmailAsync(ReenviarConfirmacaoEmailDto dto);
 
         Task ConfirmarEmailAsync(string token);
+
     }
 }

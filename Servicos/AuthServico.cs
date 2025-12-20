@@ -58,23 +58,19 @@ namespace BarbeariaPortifolio.API.Servicos
             if (string.IsNullOrWhiteSpace(dto.Senha))
                 throw new AppException("Senha é obrigatória.", 400);
 
-            var nomeExistente = await _usuarios.BuscarPorNome(dto.NomeUsuario);
-            if (nomeExistente != null)
+            if (await _usuarios.BuscarPorNome(dto.NomeUsuario) != null)
                 throw new AppException("Nome de usuário já existe.", 409);
 
-            var emailNormalizado = dto.Email.Trim().ToLowerInvariant();
-            var emailExistente = await _usuarios.BuscarPorEmail(emailNormalizado);
-            if (emailExistente != null)
+            var email = dto.Email.Trim().ToLowerInvariant();
+            if (await _usuarios.BuscarPorEmail(email) != null)
                 throw new AppException("Email já existe.", 409);
-
-            var senhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha);
 
             var usuario = new Usuario
             {
                 NomeCompleto = dto.NomeCompleto,
                 NomeUsuario = dto.NomeUsuario,
-                Email = emailNormalizado,
-                SenhaHash = senhaHash,
+                Email = email,
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.Senha),
                 Cargo = "Cliente",
                 EmailConfirmado = false,
                 Ativo = true
@@ -95,9 +91,17 @@ namespace BarbeariaPortifolio.API.Servicos
 
             await _emailTokens.CriarAsync(confirmacao);
 
-            var link = $"{_config["FRONTEND_URL"]}/confirmar-email?token={token}";
+            // ✅ URL CORRETA
+            var link = $"{_config["API_URL"]}/api/auth/confirmar-email?token={token}";
 
-            await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
+            try
+            {
+                await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EMAIL] Falha ao enviar confirmação: {ex.Message}");
+            }
 
             return usuario;
         }
@@ -105,15 +109,11 @@ namespace BarbeariaPortifolio.API.Servicos
         // ======================================================
         // LOGIN
         // ======================================================
-        public async Task<(string accessToken, string refreshToken, Usuario usuario)>
-            LoginAsync(string login, string senha)
+        public async Task<(string accessToken, string refreshToken, Usuario usuario)> LoginAsync(string login, string senha)
         {
-            Usuario? user;
-
-            if (login.Contains("@"))
-                user = await _usuarios.BuscarPorEmail(login.Trim().ToLowerInvariant());
-            else
-                user = await _usuarios.BuscarPorNome(login);
+            Usuario? user = login.Contains("@")
+                ? await _usuarios.BuscarPorEmail(login.Trim().ToLowerInvariant())
+                : await _usuarios.BuscarPorNome(login);
 
             if (user == null || !user.Ativo)
                 throw new AppException("Usuário ou senha inválidos.", 401);
@@ -122,14 +122,14 @@ namespace BarbeariaPortifolio.API.Servicos
                 throw new AppException("Usuário ou senha inválidos.", 401);
 
             if (!user.EmailConfirmado)
-                throw new AppException("Confirme seu email antes de logar", 403);
+                throw new AppException("Confirme seu email antes de logar.", 403);
 
             var accessToken = await GerarAccessToken(user);
-            var (refreshRaw, refreshHash) = await GerarRefreshToken();
+            var (raw, hash) = await GerarRefreshToken();
 
-            await SalvarRefreshToken(user, refreshHash, _jwt.RefreshTokenDays);
+            await SalvarRefreshToken(user, hash, _jwt.RefreshTokenDays);
 
-            return (accessToken, refreshRaw, user);
+            return (accessToken, raw, user);
         }
 
         // ======================================================
@@ -138,34 +138,27 @@ namespace BarbeariaPortifolio.API.Servicos
         public async Task<string> GerarAccessToken(Usuario usuario)
         {
             var barbeiroId = await BuscarBarbeiroId(usuario.Id);
-            var claims = usuario.ToClaims(barbeiroId);
-            return _tokenService.GenerateAccessToken(claims);
+            return _tokenService.GenerateAccessToken(usuario.ToClaims(barbeiroId));
         }
 
         public async Task<(string rawToken, string hashToken)> GerarRefreshToken()
         {
             var raw = _tokenService.GenerateRefreshTokenRaw();
-            var hash = _tokenService.HashRefreshToken(raw);
-            return (raw, hash);
+            return (raw, _tokenService.HashRefreshToken(raw));
         }
 
         public async Task SalvarRefreshToken(Usuario user, string hashToken, int diasExpiracao)
         {
             await _refreshTokens.RevogarTokensAtivos(user.Id);
 
-            var rt = new RefreshToken
+            await _refreshTokens.Salvar(new RefreshToken
             {
                 UsuarioId = user.Id,
                 TokenHash = hashToken,
                 ExpiraEm = DateTime.UtcNow.AddDays(diasExpiracao)
-            };
-
-            await _refreshTokens.Salvar(rt);
+            });
         }
 
-        // ======================================================
-        // AUX
-        // ======================================================
         public async Task<int?> BuscarBarbeiroId(int usuarioId)
         {
             var barbeiro = await _barbeiros.BuscarUsuarioId(usuarioId);
@@ -178,24 +171,20 @@ namespace BarbeariaPortifolio.API.Servicos
         public async Task ReenviarConfirmacaoEmailAsync(ReenviarConfirmacaoEmailDto dto)
         {
             var email = dto.Email.Trim().ToLowerInvariant();
-
             var usuario = await _usuarios.BuscarPorEmail(email);
 
             if (usuario == null || usuario.EmailConfirmado)
                 return;
 
-            var ultimoToken = await _emailTokens.BuscarUltimoPorUsuarioAsync(usuario.Id);
+            var ultimo = await _emailTokens.BuscarUltimoPorUsuarioAsync(usuario.Id);
 
-            if (ultimoToken != null &&
-                !ultimoToken.Usado &&
-                ultimoToken.CriadoEm > DateTime.UtcNow.AddMinutes(-2))
-            {
+            if (ultimo != null && !ultimo.Usado &&
+                ultimo.CriadoEm > DateTime.UtcNow.AddMinutes(-2))
                 return;
-            }
 
             await _emailTokens.InvalidarTokensAtivosPorUsuarioAsync(usuario.Id);
 
-            var novoToken = new EmailConfirmacaoToken
+            var token = new EmailConfirmacaoToken
             {
                 UsuarioId = usuario.Id,
                 Token = Guid.NewGuid().ToString("N"),
@@ -204,9 +193,10 @@ namespace BarbeariaPortifolio.API.Servicos
                 Usado = false
             };
 
-            await _emailTokens.CriarAsync(novoToken);
+            await _emailTokens.CriarAsync(token);
 
-            var link = $"{_config["FRONTEND_URL"]}/confirmar-email?token={novoToken.Token}";
+            // ✅ URL CORRETA
+            var link = $"{_config["API_URL"]}/api/auth/confirmar-email?token={token.Token}";
 
             await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
         }
@@ -218,12 +208,17 @@ namespace BarbeariaPortifolio.API.Servicos
         {
             var confirmacao = await _emailTokens.BuscarPorTokenAsync(token);
 
-            if (confirmacao == null ||
-                confirmacao.Usado ||
-                confirmacao.ExpiraEm < DateTime.UtcNow)
-            {
-                throw new AppException("Token inválido ou expirado.", 400);
-            }
+            if (confirmacao == null)
+                throw new AppException("Token inválido.", 400);
+
+            if (confirmacao.Usado)
+                throw new AppException("Token já utilizado.", 409);
+
+            if (confirmacao.ExpiraEm < DateTime.UtcNow)
+                throw new AppException("Token expirado.", 410);
+
+            if (confirmacao.Usuario.EmailConfirmado)
+                throw new AppException("Email já confirmado.", 409);
 
             confirmacao.Usado = true;
             confirmacao.Usuario.EmailConfirmado = true;

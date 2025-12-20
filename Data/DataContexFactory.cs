@@ -13,22 +13,20 @@ namespace BarbeariaPortifolio.API.Data
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             Console.WriteLine($"ENV = {env}");
 
-            var basePath = Directory.GetCurrentDirectory();
-            Console.WriteLine($"BASEPATH = {basePath}");
-
             var config = new ConfigurationBuilder()
-                .SetBasePath(basePath)
-                .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile($"appsettings.{env}.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
 
-            var connectionString = config.GetConnectionString("Postgres");
+            var connectionString =
+                Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")
+                ?? (env == "Development"
+                    ? Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_DEV")
+                    : null);
 
             Console.WriteLine($"CONNECTION = {connectionString}");
 
             if (string.IsNullOrWhiteSpace(connectionString))
-                throw new Exception("ConnectionStrings:Postgres não encontrada.");
+                throw new Exception("POSTGRES_CONNECTION não configurada.");
 
             var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
             optionsBuilder.UseNpgsql(connectionString);

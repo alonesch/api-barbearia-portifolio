@@ -4,6 +4,7 @@ using BarbeariaPortifolio.API.Servicos.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Configuration;
 
 
 namespace BarbeariaPortifolio.API.Controllers
@@ -13,21 +14,24 @@ namespace BarbeariaPortifolio.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthServico _auth;
+        private readonly IConfiguration _config;
 
-        public AuthController(IAuthServico auth)
+        public AuthController(IAuthServico auth, IConfiguration config)
         {
             _auth = auth;
+            _config = config;
         }
 
         public class LoginRequest
         {
-            public string Usuario { get; set; } = string.Empty; 
+            public string Usuario { get; set; } = string.Empty;
             public string Senha { get; set; } = string.Empty;
         }
 
-        
+
         [HttpGet("confirmar-email")]
         [AllowAnonymous]
+        [EnableRateLimiting("ConfirmarEmailPolicy")]
         public async Task<IActionResult> ConfirmarEmail([FromQuery] string token)
         {
             if (string.IsNullOrWhiteSpace(token))
@@ -35,10 +39,17 @@ namespace BarbeariaPortifolio.API.Controllers
 
             await _auth.ConfirmarEmailAsync(token);
 
+            var aceito = Request.Headers.Accept.ToString();
+
+            if (aceito.Contains("text/html"))
+            {
+                return Redirect($"{_config["FRONTEND_URL"]}/confirmar-email?status=success");
+            }
+
             return Ok(new { mensagem = "Email confirmado com sucesso." });
         }
 
-        
+
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegistrarNovoClienteDTO dto)
@@ -54,7 +65,7 @@ namespace BarbeariaPortifolio.API.Controllers
 
             var usuario = await _auth.RegistrarAsync(dto);
 
-            return Ok(new
+            return Created("", new
             {
                 mensagem = "Registro realizado com sucesso.",
                 usuario = new
@@ -68,7 +79,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-  
+
         [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
         [AllowAnonymous]
@@ -106,7 +117,7 @@ namespace BarbeariaPortifolio.API.Controllers
             });
         }
 
-        
+
         [HttpPost("reenviar-confirmacao")]
         [AllowAnonymous]
         public async Task<IActionResult> ReenviarConfirmacao([FromBody] ReenviarConfirmacaoEmailDto dto)
@@ -118,5 +129,6 @@ namespace BarbeariaPortifolio.API.Controllers
                 mensagem = "Se existir uma conta com este e-mail, um novo link de confirmação foi enviado."
             });
         }
+
     }
 }

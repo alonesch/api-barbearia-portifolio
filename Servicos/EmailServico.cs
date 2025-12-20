@@ -1,6 +1,7 @@
-﻿using System.Net;
-using System.Net.Mail;
-using BarbeariaPortifolio.API.Servicos.Interfaces;
+﻿using BarbeariaPortifolio.API.Servicos.Interfaces;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 
 namespace BarbeariaPortifolio.API.Servicos
 {
@@ -22,28 +23,36 @@ namespace BarbeariaPortifolio.API.Servicos
             var from = _config["EMAIL_FROM"];
             var name = _config["EMAIL_NAME"];
 
-            var smtp = new SmtpClient(host, port)
+            if (string.IsNullOrWhiteSpace(host) ||
+                string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(pass))
             {
-                Credentials = new NetworkCredential(user, pass),
-                EnableSsl = true
-            };
+                throw new Exception("Configuração SMTP incompleta");
+            }
 
-            var mail = new MailMessage
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(name, from));
+            message.To.Add(MailboxAddress.Parse(email));
+            message.Subject = "Confirme seu e-mail";
+
+            message.Body = new TextPart("html")
             {
-                From = new MailAddress(from!, name),
-                Subject = "Confirme seu e-mail",
-                Body = $@"
+                Text = $@"
                     <h2>Confirmação de e-mail</h2>
                     <p>Para concluir seu cadastro, clique no link abaixo:</p>
                     <p><a href='{link}'>Confirmar e-mail</a></p>
                     <p>Se você não criou essa conta, ignore este e-mail.</p>
-                ",
-                IsBodyHtml = true
+                "
             };
 
-            mail.To.Add(email);
+            using var client = new SmtpClient();
 
-            await smtp.SendMailAsync(mail);
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(user, pass);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+
+            Console.WriteLine($"[EMAIL] Enviado com sucesso para {email}");
         }
     }
 }

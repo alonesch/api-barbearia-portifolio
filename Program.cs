@@ -11,11 +11,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Threading.RateLimiting;
+using System.Net;
+using Microsoft.AspNetCore.RateLimiting;
 
+DotNetEnv.Env.Load();
 // =======================================================================
 // BUILDER
 // =======================================================================
 var builder = WebApplication.CreateBuilder(args);
+
 
 // =======================================================================
 // CONTROLLERS + SWAGGER
@@ -83,8 +87,13 @@ builder.Services
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-            ),
+            Encoding.UTF8.GetBytes(
+        builder.Configuration["Jwt:Key"]
+        ?? Environment.GetEnvironmentVariable("JWT_KEY")
+        ?? throw new Exception("JWT_KEY não configurada")
+             )
+        ),
+
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
@@ -125,6 +134,25 @@ builder.Services.AddRateLimiter(options =>
             """{ "erro": "Muitas tentativas. Aguarde 1 minuto para tentar novamente." }"""
         );
     };
+    options.AddPolicy("ConfirmarEmailPolicy", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress;
+
+        
+        var partitionKey = ip?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+
 });
 
 // =======================================================================
@@ -137,11 +165,11 @@ Console.WriteLine($"[BOOT] POSTGRES_CONNECTION_DEV = [{Environment.GetEnvironmen
 Console.WriteLine($"[BOOT] POSTGRES_CONNECTION = [{Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")}]");
 
 var pgConnection =
-    Environment.GetEnvironmentVariable(
-        env == Environments.Development
-            ? "POSTGRES_CONNECTION_DEV"
-            : "POSTGRES_CONNECTION"
-    );
+    Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")
+    ?? (env == Environments.Development
+        ? Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_DEV")
+        : null);
+
 
 if (string.IsNullOrWhiteSpace(pgConnection))
 {

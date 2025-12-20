@@ -7,60 +7,60 @@ namespace BarbeariaPortifolio.API.Repositorios
 {
     public class EmailConfirmacaoTokenRepositorio : IEmailConfirmacaoTokenRepositorio
     {
-        private readonly DataContext _repositorio;
+        private readonly DataContext _context;
 
-        public EmailConfirmacaoTokenRepositorio(DataContext repositorio)
+        public EmailConfirmacaoTokenRepositorio(DataContext context)
         {
-            _repositorio = repositorio;
+            _context = context;
         }
 
-        // ✅ Cria um novo token de confirmação
         public async Task CriarAsync(EmailConfirmacaoToken token)
         {
-            _repositorio.EmailConfirmacaoTokens.Add(token);
-            await _repositorio.SaveChangesAsync();
+            _context.EmailConfirmacaoTokens.Add(token);
+            await _context.SaveChangesAsync();
         }
 
-        // ✅ Busca token pelo valor (usado na confirmação de e-mail)
         public async Task<EmailConfirmacaoToken?> BuscarPorTokenAsync(string token)
         {
-            return await _repositorio.EmailConfirmacaoTokens
-                .Include(x => x.Usuario)
-                .FirstOrDefaultAsync(x => x.Token == token);
+            return await _context.EmailConfirmacaoTokens
+                .Include(t => t.Usuario)
+                .FirstOrDefaultAsync(t => t.Token == token);
         }
 
-        // ✅ Busca o último token gerado para um usuário (rate limit)
         public async Task<EmailConfirmacaoToken?> BuscarUltimoPorUsuarioAsync(int usuarioId)
         {
-            return await _repositorio.EmailConfirmacaoTokens
-                .Where(x => x.UsuarioId == usuarioId)
-                .OrderByDescending(x => x.CriadoEm)
+            return await _context.EmailConfirmacaoTokens
+                .Where(t => t.UsuarioId == usuarioId)
+                .OrderByDescending(t => t.CriadoEm)
                 .FirstOrDefaultAsync();
         }
 
-        // ✅ Invalida todos os tokens ativos (não usados) do usuário
         public async Task InvalidarTokensAtivosPorUsuarioAsync(int usuarioId)
         {
-            var tokensAtivos = await _repositorio.EmailConfirmacaoTokens
-                .Where(x => x.UsuarioId == usuarioId && !x.Usado)
+            var tokens = await _context.EmailConfirmacaoTokens
+                .Where(t => t.UsuarioId == usuarioId && !t.Usado)
                 .ToListAsync();
 
-            if (tokensAtivos.Count == 0)
-                return;
-
-            foreach (var token in tokensAtivos)
-            {
+            foreach (var token in tokens)
                 token.Usado = true;
-            }
 
-            await _repositorio.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
 
-        // ✅ Persiste alterações no token (ex: marcar como usado)
         public async Task SalvarAsync(EmailConfirmacaoToken token)
         {
-            _repositorio.EmailConfirmacaoTokens.Update(token);
-            await _repositorio.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoverTokensExpiradosOuUsadosAsync()
+        {
+            var agora = DateTime.UtcNow;
+
+            var tokens = _context.EmailConfirmacaoTokens
+                .Where(t => t.Usado || t.ExpiraEm < agora);
+
+            _context.EmailConfirmacaoTokens.RemoveRange(tokens);
+            await _context.SaveChangesAsync();
         }
     }
 }

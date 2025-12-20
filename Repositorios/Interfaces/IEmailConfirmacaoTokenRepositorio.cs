@@ -18,5 +18,7 @@ namespace BarbeariaPortifolio.API.Repositorios.Interfaces
 
         // ✅ Persiste alterações (marcar como usado, expirar, etc.)
         Task SalvarAsync(EmailConfirmacaoToken token);
+        Task RemoverTokensExpiradosOuUsadosAsync();
+
     }
 }

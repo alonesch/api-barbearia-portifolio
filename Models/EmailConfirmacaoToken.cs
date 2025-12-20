@@ -1,5 +1,10 @@
-﻿namespace BarbeariaPortifolio.API.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+
+
+namespace BarbeariaPortifolio.API.Models
 {
+    [Index(nameof(Token), IsUnique = true)]
     public class EmailConfirmacaoToken
     {
         public int Id { get; set; }
