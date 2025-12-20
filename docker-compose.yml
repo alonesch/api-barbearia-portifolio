@@ -1,16 +1,59 @@
+version: "3.9"
+
 services:
-  postgres:
+  db:
     image: postgres:16
-    container_name: barbearia_postgres_local
+    container_name: barbercloud-postgres-dev
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
-      TZ: America/Sao_Paulo
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - barbercloud_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: mcr.microsoft.com/dotnet/aspnet:9.0
+    container_name: barbercloud-api-dev
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - ./api:/app
+    command: ["dotnet", "BarbeariaPortifolio.API.dll"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      POSTGRES_CONNECTION: ${POSTGRES_CONNECTION}
+      JWT_KEY: ${JWT_KEY}
+
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_NAME: ${EMAIL_NAME}
+
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_URL: ${API_URL}
+
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+    ports:
+      - "8080:8080"
+    networks:
+      - barbercloud_net
 
 volumes:
   postgres_data:
+
+networks:
+  barbercloud_net:
+    driver: bridge
