@@ -29,7 +29,9 @@ public class ClienteServico : IClienteServico
             Email = cliente.Usuario?.Email ?? "",
             Cpf = cliente.Cpf,
             Telefone = cliente.Telefone ?? "",
-            DataCadastro = cliente.DataCadastro
+            DataCadastro = cliente.DataCadastro,
+            FotoPerfilUrl = cliente.Usuario?.FotoPerfilUrl
+           
         };
     }
 

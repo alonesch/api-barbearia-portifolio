@@ -6,4 +6,5 @@ public class UsuarioDTO
     public string NomeUsuario { get; set; } = string.Empty;
     public string Cargo { get; set; } = string.Empty;
     public int? BarbeiroId { get; set; }
+    public string? FotoPerfilUrl { get; set; }
 }

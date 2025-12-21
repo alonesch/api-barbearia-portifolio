@@ -3,6 +3,7 @@ using BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BarbeariaPortifolio.API.Shared.Exceptions;
+using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
 
 namespace BarbeariaPortifolio.API.Modules.Usuarios.Controllers.V1;
 
@@ -30,7 +31,17 @@ public class UsuarioController : ControllerBase
         if (usuario == null)
             throw new AppException("Usuário não encontrado.", 404);
 
-        return Ok(usuario);
+        var usuarioDto = new UsuarioDTO
+        {
+            Id = usuario.Id,
+            NomeUsuario = usuario.NomeUsuario,
+            Cargo = usuario.Cargo,
+            BarbeiroId = null,
+            FotoPerfilUrl = usuario.FotoPerfilUrl,
+
+        };
+
+        return Ok(usuarioDto);
     }
 
     //[Authorize(Policy = "AdminOuBarbeiro")]
@@ -42,7 +53,14 @@ public class UsuarioController : ControllerBase
         return CreatedAtAction(nameof(BuscarPorId), new { id = novo.Id }, new
         {
             mensagem = "Usuário cadastrado com sucesso.",
-            dados = novo
+            dados = new UsuarioDTO
+            {
+                Id =novo.Id,
+                NomeUsuario=novo.NomeUsuario,
+                Cargo = novo.Cargo,
+                BarbeiroId = null,
+                FotoPerfilUrl=novo.FotoPerfilUrl,
+            }
         });
     }
 

@@ -24,4 +24,6 @@ public class Usuario
     public bool EmailConfirmado { get; set; } = false;
 
     public bool Ativo { get; set; } = true;
+
+    public string? FotoPerfilUrl { get; set; }
 }

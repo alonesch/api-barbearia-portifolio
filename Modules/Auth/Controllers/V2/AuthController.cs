@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
+using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
 
 
 
@@ -99,6 +100,15 @@ public class AuthController : ControllerBase
 
         var barbeiroId = await _auth.BuscarBarbeiroId(usuario.Id);
 
+        var  usuarioDto = new UsuarioDTO
+        {
+            Id = usuario.Id,
+            NomeUsuario = usuario.NomeUsuario,
+            Cargo = usuario.Cargo,
+            BarbeiroId = barbeiroId,
+            FotoPerfilUrl = usuario.FotoPerfilUrl
+        };
+
         return Ok(new
         {
             mensagem = "Login realizado com sucesso.",
@@ -106,15 +116,8 @@ public class AuthController : ControllerBase
             {
                 token = accessToken,
                 refreshToken = refreshToken,
-                usuario = new
-                {
-                    usuario.Id,
-                    usuario.NomeUsuario,
-                    usuario.NomeCompleto,
-                    usuario.Email,
-                    usuario.Cargo,
-                    barbeiroId = barbeiroId
-                }
+                usuario = usuarioDto
+
             }
         });
     }
