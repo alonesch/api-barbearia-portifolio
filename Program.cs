@@ -65,6 +65,14 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<TokenService>();
 
+
+var jwtKey =
+    builder.Configuration["Jwt:Key"] is { Length: > 0 } keyFromConfig
+        ? keyFromConfig
+        : Environment.GetEnvironmentVariable("JWT_KEY")
+          ?? throw new Exception("JWT_KEY não configurada");
+
+
 builder.Services
     .AddAuthentication(options =>
     {
@@ -87,16 +95,12 @@ builder.Services
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(
-        builder.Configuration["Jwt:Key"]
-        ?? Environment.GetEnvironmentVariable("JWT_KEY")
-        ?? throw new Exception("JWT_KEY não configurada")
-             )
-        ),
-
+                Encoding.UTF8.GetBytes(jwtKey)
+            ),
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
+
 
 // =======================================================================
 // AUTHORIZATION (ROLES)
