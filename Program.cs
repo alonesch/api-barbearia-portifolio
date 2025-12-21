@@ -156,7 +156,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // =======================================================================
-// DATABASE  ✅ AJUSTADO (APENAS AQUI)
+// DATABASE  
 // =======================================================================
 var env = builder.Environment.EnvironmentName;
 
@@ -251,19 +251,18 @@ app.UseWhen(
 // =======================================================================
 if (!builder.Environment.IsEnvironment("DesignTime"))
 {
+    using var scope = app.Services.CreateScope();
     try
     {
-        using (var scope = app.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-            db.Database.Migrate();
-        }
+        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+        db.Database.Migrate();
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Erro ao aplicar migrations: {ex.Message}");
+        Console.WriteLine($"[MIGRATION SKIPPED] {ex.Message}");
     }
 }
+
 
 
 // =======================================================================

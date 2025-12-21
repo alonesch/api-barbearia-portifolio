@@ -1,14 +1,16 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16
     container_name: barbercloud-postgres-dev
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432" # DEV: exposto no host
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -20,16 +22,16 @@ services:
       retries: 5
 
   api:
-    image: mcr.microsoft.com/dotnet/aspnet:9.0
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: barbercloud-api-dev
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
-    working_dir: /app
-    volumes:
-      - ./api:/app
-    command: ["dotnet", "BarbeariaPortifolio.API.dll"]
+    env_file:
+      - .env
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       POSTGRES_CONNECTION: ${POSTGRES_CONNECTION}
