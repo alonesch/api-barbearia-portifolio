@@ -249,18 +249,22 @@ app.UseWhen(
 // =======================================================================
 // MIGRATIONS ON STARTUP
 // =======================================================================
-using (var scope = app.Services.CreateScope())
+if (!builder.Environment.IsEnvironment("DesignTime"))
 {
     try
     {
-        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-        db.Database.Migrate();
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+            db.Database.Migrate();
+        }
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Erro ao aplicar migrations: {ex.Message}");
     }
 }
+
 
 // =======================================================================
 // SWAGGER (DEV)
