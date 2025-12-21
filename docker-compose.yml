@@ -3,18 +3,27 @@ services:
     image: postgres:16
     container_name: barbercloud-postgres-dev
     restart: unless-stopped
+
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
     env_file:
       - .env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
     ports:
       - "5432:5432" # DEV: exposto no host
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     networks:
       - barbercloud_net
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -27,9 +36,15 @@ services:
       dockerfile: Dockerfile
     container_name: barbercloud-api-dev
     restart: unless-stopped
+
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
     depends_on:
       db:
         condition: service_healthy
+
     env_file:
       - .env
     environment:
@@ -48,8 +63,10 @@ services:
       API_URL: ${API_URL}
 
       ASPNETCORE_URLS: http://0.0.0.0:8080
+
     ports:
       - "8080:8080"
+
     networks:
       - barbercloud_net
 
