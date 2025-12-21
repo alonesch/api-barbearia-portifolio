@@ -2,49 +2,56 @@
 using System.Text.Json;
 using BarbeariaPortifolio.API.Exceptions;
 
-
 namespace BarbeariaPortifolio.API.Middleware
 {
     public class TratamentoDeErros
     {
-        private readonly RequestDelegate _proximo;
+        private readonly RequestDelegate _next;
 
-        public TratamentoDeErros(RequestDelegate proximo)
+        public TratamentoDeErros(RequestDelegate next)
         {
-            _proximo = proximo;
+            _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext contexto)
+        public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                {
-                    await _proximo(contexto);
-                }
+                await _next(context);
             }
             catch (AppException erro)
             {
-                if(!contexto.Response.HasStarted)
+                Console.WriteLine(" AppException capturada:");
+                Console.WriteLine(erro.ToString());
+
+                if (!context.Response.HasStarted)
                 {
-                    contexto.Response.StatusCode = erro.StatusCode;
-                    contexto.Response.ContentType = "application/json";
-                
+                    context.Response.Clear();
+                    context.Response.StatusCode = erro.StatusCode;
+                    context.Response.ContentType = "application/json";
+
                     var retorno = new { mensagem = erro.Message };
-                    await contexto.Response.WriteAsync(JsonSerializer.Serialize(retorno));
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(retorno));
                 }
-
             }
-            catch (Exception)
+            catch (Exception erro)
             {
-                if(!contexto.Response.HasStarted)
+                Console.WriteLine("Exception NÃO TRATADA:");
+                Console.WriteLine(erro.ToString());
+
+                if (!context.Response.HasStarted)
                 {
+                    context.Response.Clear();
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    context.Response.ContentType = "application/json";
 
-                    contexto.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    contexto.Response.ContentType = "application/json";
+                    var retorno = new
+                    {
+                        mensagem = "Erro interno do servidor.",
+                        traceId = context.TraceIdentifier
+                    };
 
-                    var retorno = new { message = "Erro interno do servidor." };
-                    await contexto.Response.WriteAsync(JsonSerializer.Serialize(retorno));
-
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(retorno));
                 }
             }
         }

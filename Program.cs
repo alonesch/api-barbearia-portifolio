@@ -240,10 +240,7 @@ var app = builder.Build();
 // =======================================================================
 // GLOBAL ERROR HANDLER
 // =======================================================================
-app.UseWhen(
-    context => context.Request.Method != HttpMethods.Options,
-    appBuilder => appBuilder.UseMiddleware<TratamentoDeErros>()
-);
+app.UseMiddleware<TratamentoDeErros>();
 
 
 // =======================================================================
