@@ -249,19 +249,19 @@ app.UseWhen(
 // =======================================================================
 // MIGRATIONS ON STARTUP
 // =======================================================================
-if (!builder.Environment.IsEnvironment("DesignTime"))
-{
-    using var scope = app.Services.CreateScope();
-    try
-    {
-        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-        db.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[MIGRATION SKIPPED] {ex.Message}");
-    }
-}
+//if (!builder.Environment.IsEnvironment("DesignTime"))
+//{
+//    using var scope = app.Services.CreateScope();
+//    try
+//    {
+//        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+//        db.Database.Migrate();
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine($"[MIGRATION SKIPPED] {ex.Message}");
+//    }
+//}
 
 
 
