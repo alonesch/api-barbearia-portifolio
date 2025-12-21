@@ -1,18 +1,51 @@
-using BarbeariaPortifolio.API.Auth;
-using BarbeariaPortifolio.API.Data;
-using BarbeariaPortifolio.API.Middleware;
-using BarbeariaPortifolio.API.Repositorios;
-using BarbeariaPortifolio.API.Repositorios.Interfaces;
-using BarbeariaPortifolio.API.Servicos;
-using BarbeariaPortifolio.API.Servicos.Interfaces;
+using BarbeariaPortifolio.API.Shared.Data;
+using BarbeariaPortifolio.API.Shared.Middleware;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Modules.Repositories;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Repositories;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Repositories.Interfaces;
+// ================= AGENDAMENTOS =================
+using BarbeariaPortifolio.API.Modules.Agendamentos.Services;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Services.Interfaces;
+// ================= AUTH =================
+using BarbeariaPortifolio.API.Modules.Auth.Jwt;
+using BarbeariaPortifolio.API.Modules.Auth.Repositories;
+using BarbeariaPortifolio.API.Modules.Auth.Repositories.Interfaces;
+using BarbeariaPortifolio.API.Modules.Auth.Services;
+using BarbeariaPortifolio.API.Modules.Auth.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Barbeiros.Repositories;
+using BarbeariaPortifolio.API.Modules.Barbeiros.Repositories.Interfaces;
+// ================= BARBEIROS =================
+using BarbeariaPortifolio.API.Modules.Barbeiros.Services;
+using BarbeariaPortifolio.API.Modules.Barbeiros.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Clientes.Repositories;
+using BarbeariaPortifolio.API.Modules.Clientes.Repositories.Interfaces;
+// ================= CLIENTES =================
+using BarbeariaPortifolio.API.Modules.Clientes.Services;
+using BarbeariaPortifolio.API.Modules.Clientes.Services.Interfaces;
+// ================= DISPONIBILIDADES =================
+using BarbeariaPortifolio.API.Modules.Disponibilidades.Services;
+using BarbeariaPortifolio.API.Modules.Disponibilidades.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Services.Repositories;
+using BarbeariaPortifolio.API.Modules.Services.Repositories.Interfaces;
+using BarbeariaPortifolio.API.Modules.Services.Respositories;
+// ================= SERVIÇOS =================
+using BarbeariaPortifolio.API.Modules.Services.Services;
+using BarbeariaPortifolio.API.Modules.Services.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Usuarios.Repositories;
+using BarbeariaPortifolio.API.Modules.Usuarios.Repositories.Interfaces;
+// ================= USUÁRIOS =================
+using BarbeariaPortifolio.API.Modules.Usuarios.Services;
+using BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
+// ================= INFRA =================
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
-using System.Net;
-using Microsoft.AspNetCore.RateLimiting;
+
 
 DotNetEnv.Env.Load();
 // =======================================================================

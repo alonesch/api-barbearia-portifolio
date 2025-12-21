@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace BarbeariaPortfolio.API.Migrations
+namespace BarbeariaPortifolio.API.Migrations
 {
     /// <inheritdoc />
     public partial class CreateEmailConfirmacaoToken : Migration

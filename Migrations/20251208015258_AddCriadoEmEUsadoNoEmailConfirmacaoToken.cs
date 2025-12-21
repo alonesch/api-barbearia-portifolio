@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace BarbeariaPortfolio.API.Migrations
+namespace BarbeariaPortifolio.API.Migrations
 {
     /// <inheritdoc />
     public partial class AddCriadoEmEUsadoNoEmailConfirmacaoToken : Migration

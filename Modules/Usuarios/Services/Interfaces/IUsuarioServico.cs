@@ -1,0 +1,15 @@
+﻿using BarbeariaPortifolio.API.Modules.Usuarios.Models;
+
+
+namespace BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
+
+public interface IUsuarioServico
+{
+    // Futuro:
+    // Task<IEnumerable<Usuario>> ListarTodos();
+
+    Task<Usuario?> BuscarPorId(int id);
+    Task<Usuario> Cadastrar(Usuario usuario);
+    Task<bool> Atualizar(int id, Usuario usuario);
+    Task<bool> Excluir(int id);
+}

@@ -5,16 +5,16 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Cache eficiente das dependências do projeto
-COPY BarbeariaPortfolio.API.csproj ./
+COPY BarbeariaPortifolio.API.csproj ./
 
 # Restaura dependências
-RUN dotnet restore BarbeariaPortfolio.API.csproj
+RUN dotnet restore BarbeariaPortifolio.API.csproj
 
 # Copia toda a solução
 COPY . .
 
 # Publica em modo Release
-RUN dotnet publish BarbeariaPortfolio.API.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish BarbeariaPortifolio.API.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 
 # ============================
@@ -32,4 +32,4 @@ ENV TZ=America/Sao_Paulo
 # Informando a porta para o Render
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 
-ENTRYPOINT ["dotnet", "BarbeariaPortfolio.API.dll"]
+ENTRYPOINT ["dotnet", "BarbeariaPortifolio.API.dll"]

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace BarbeariaPortfolio.API.Migrations
+namespace BarbeariaPortifolio.API.Migrations
 {
     /// <inheritdoc />
     public partial class ajustandodispo : Migration
