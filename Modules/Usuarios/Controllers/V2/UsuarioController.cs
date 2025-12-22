@@ -1,4 +1,6 @@
 ﻿using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
+using BarbeariaPortifolio.API.Modules.Usuarios.Services;
+using BarbeariaPortifolio.API.Shared.Exceptions;
 using BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,5 +33,27 @@ public class UsuarioController : ControllerBase
         await _servico.AtualizarFotoPerfil(usuarioId, dto.FotoPerfilUrl);
 
         return NoContent();
+    }
+
+
+    [HttpGet("me")]
+    public async Task<ActionResult<UsuarioPerfilDTO>> Me()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+            return Unauthorized();
+
+        var usuarioId = int.Parse(userIdClaim.Value);
+
+        var usuario = await _servico.BuscarPorId(usuarioId);
+
+        if (usuario == null)
+            throw new AppException("Usuário não encontrado.", 404);
+
+        
+        var dto = UsuarioMapper.ToPerfilDTO(usuario);
+
+        return Ok(dto);
     }
 }

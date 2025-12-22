@@ -17,7 +17,7 @@ public interface IAuthServico
 
     Task SalvarRefreshToken(Usuario user, string hashToken, int diasExpiracao);
 
-    Task<int?> BuscarBarbeiroId(int usuarioId);
+    Task<int?> BuscarPorUsuarioId(int usuarioId);
 
     Task ReenviarConfirmacaoEmailAsync(ReenviarConfirmacaoEmailDto dto);
 

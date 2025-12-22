@@ -35,9 +35,7 @@ public class UsuarioController : ControllerBase
         {
             Id = usuario.Id,
             NomeUsuario = usuario.NomeUsuario,
-            Cargo = usuario.Cargo,
-            BarbeiroId = null,
-            FotoPerfilUrl = usuario.FotoPerfilUrl,
+            Cargo = usuario.Cargo
 
         };
 
@@ -55,16 +53,14 @@ public class UsuarioController : ControllerBase
             mensagem = "Usuário cadastrado com sucesso.",
             dados = new UsuarioDTO
             {
-                Id =novo.Id,
-                NomeUsuario=novo.NomeUsuario,
-                Cargo = novo.Cargo,
-                BarbeiroId = null,
-                FotoPerfilUrl=novo.FotoPerfilUrl,
+                Id = novo.Id,
+                NomeUsuario = novo.NomeUsuario,
+                Cargo = novo.Cargo
             }
         });
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Atualizar(int id, [FromBody] Usuario usuario)
     {

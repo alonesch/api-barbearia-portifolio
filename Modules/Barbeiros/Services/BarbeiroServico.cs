@@ -76,6 +76,23 @@ public class BarbeiroServico : IBarbeiroServico
         };
     }
 
+    public async Task<BarbeiroDTO?> BuscarPorUsuarioId(int usuarioId)
+    {
+        var barbeiro = await _repositorio.BuscarPorUsuarioId(usuarioId);
+
+        if (barbeiro == null)
+            return null;
+
+        return new BarbeiroDTO
+        {
+            Id = barbeiro.Id,
+            Nome = barbeiro.Nome,
+            Telefone = barbeiro.Telefone,
+            Usuario = barbeiro.Usuario?.NomeUsuario
+        };
+    }
+
+
     public async Task<BarbeiroDTO> Cadastrar(CriarBarbeiroDTO dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Nome))

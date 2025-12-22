@@ -98,15 +98,13 @@ public class AuthController : ControllerBase
         var (accessToken, refreshToken, usuario) =
             await _auth.LoginAsync(request.Usuario, request.Senha);
 
-        var barbeiroId = await _auth.BuscarBarbeiroId(usuario.Id);
+        var barbeiroId = await _auth.BuscarPorUsuarioId(usuario.Id);
 
         var  usuarioDto = new UsuarioDTO
         {
             Id = usuario.Id,
             NomeUsuario = usuario.NomeUsuario,
-            Cargo = usuario.Cargo,
-            BarbeiroId = barbeiroId,
-            FotoPerfilUrl = usuario.FotoPerfilUrl
+            Cargo = usuario.Cargo
         };
 
         return Ok(new

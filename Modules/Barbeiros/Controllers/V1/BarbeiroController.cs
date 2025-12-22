@@ -5,7 +5,7 @@ using BarbeariaPortifolio.API.Modules.Barbeiros.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BarbeariaPortifilio.API.Modules.Barbeiros.Controllers.V1;
+namespace BarbeariaPortifolio.API.Modules.Barbeiros.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/barbeiros")]

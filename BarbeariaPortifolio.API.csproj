@@ -8,6 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Modules\Barbeiros\Controllers\NovaPasta1\**" />
+    <Compile Remove="Modules\Barbeiros\Controllers\NovaPasta\**" />
+    <Content Remove="Modules\Barbeiros\Controllers\NovaPasta1\**" />
+    <Content Remove="Modules\Barbeiros\Controllers\NovaPasta\**" />
+    <EmbeddedResource Remove="Modules\Barbeiros\Controllers\NovaPasta1\**" />
+    <EmbeddedResource Remove="Modules\Barbeiros\Controllers\NovaPasta\**" />
+    <None Remove="Modules\Barbeiros\Controllers\NovaPasta1\**" />
+    <None Remove="Modules\Barbeiros\Controllers\NovaPasta\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="MailKit" Version="4.14.1" />

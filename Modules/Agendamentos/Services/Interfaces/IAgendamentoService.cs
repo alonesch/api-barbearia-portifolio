@@ -13,7 +13,6 @@ public interface IAgendamentoServico
     Task<AgendamentoDTO> BuscarPorId(int id);
     Task<ClienteStatsDTO> BuscarStatsCliente(int id);
     Task<BarbeiroStatsDTO> BuscarStatsBarbeiro(int id);
-
     Task<IEnumerable<AgendamentoDTO>> ListarPorUsuario(int usuarioId);
     Task<PagedResultDTO<AgendamentoDTO>> ListarPorUsuarioPaginado(int usuarioId, int page, int pageSize);
 

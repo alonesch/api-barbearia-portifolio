@@ -96,7 +96,7 @@ public class AuthServico : IAuthServico
         await _emailTokens.CriarAsync(confirmacao);
 
         // ✅ URL CORRETA
-        var link = $"{_config["API_URL"]}/api/auth/confirmar-email?token={token}";
+        var link = $"{_config["API_URL"]}/api/v2/auth/confirmar-email?token={token}";
 
         try
         {
@@ -141,9 +141,16 @@ public class AuthServico : IAuthServico
     // ======================================================
     public async Task<string> GerarAccessToken(Usuario usuario)
     {
-        var barbeiroId = await BuscarBarbeiroId(usuario.Id);
+        var barbeiroId = await BuscarPorUsuarioId(usuario.Id);
         return _tokenService.GenerateAccessToken(usuario.ToClaims(barbeiroId));
     }
+
+    public async Task<int?> BuscarPorUsuarioId(int usuarioId)
+    {
+        var barbeiro = await _barbeiros.BuscarPorUsuarioId(usuarioId);
+        return barbeiro?.Id;
+    }
+
 
     public async Task<(string rawToken, string hashToken)> GerarRefreshToken()
     {
@@ -163,11 +170,7 @@ public class AuthServico : IAuthServico
         });
     }
 
-    public async Task<int?> BuscarBarbeiroId(int usuarioId)
-    {
-        var barbeiro = await _barbeiros.BuscarUsuarioId(usuarioId);
-        return barbeiro?.Id;
-    }
+   
 
     // ======================================================
     // EMAIL - REENVIO
@@ -200,7 +203,7 @@ public class AuthServico : IAuthServico
         await _emailTokens.CriarAsync(token);
 
         // ✅ URL CORRETA
-        var link = $"{_config["API_URL"]}/api/auth/confirmar-email?token={token.Token}";
+        var link = $"{_config["API_URL"]}/api/v2/auth/confirmar-email?token={token.Token}";
 
         await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
     }

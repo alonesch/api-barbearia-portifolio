@@ -40,11 +40,12 @@ public class BarbeiroRepositorio : IBarbeiroRepositorio
             .FirstOrDefaultAsync(b => b.Id == id);
     }
 
-    public async Task<Barbeiro?> BuscarUsuarioId(int usuarioId)
+    public async Task<Barbeiro?> BuscarPorUsuarioId(int usuarioId)
     {
         return await _banco.Barbeiros
             .FirstOrDefaultAsync(b => b.UsuarioId == usuarioId);
     }
+
 
     public async Task<Barbeiro?> BuscarPorNome(string nome)
     {
