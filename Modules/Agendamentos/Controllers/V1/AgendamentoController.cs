@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace BarbeariaPortifolio.API.Modules.Agendamentos.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/agendamentos")]
 public class AgendamentoController : ControllerBase
 {
     private readonly IAgendamentoServico _servico;

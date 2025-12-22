@@ -18,6 +18,8 @@ public class UsuarioServico : IUsuarioServico
     // public async Task<IEnumerable<Usuario>> ListarTodos()
     //     => await _repositorio.ListarTodos();
 
+
+
     public async Task<Usuario?> BuscarPorId(int id)
         => await _repositorio.BuscarPorId(id);
 
@@ -53,6 +55,21 @@ public class UsuarioServico : IUsuarioServico
 
         return await _repositorio.Atualizar(id, existente);
     }
+
+    public async Task AtualizarFotoPerfil(int usuarioId, string fotoPerfilUrl)
+    {
+        if (string.IsNullOrWhiteSpace(fotoPerfilUrl))
+            throw new AppException("FotoPerfilUrl é obrigatória.", 400);
+
+        var usuario = await _repositorio.BuscarPorId(usuarioId);
+        if (usuario == null)
+            throw new AppException("Usuário não encontrado.", 404);
+
+        usuario.FotoPerfilUrl = fotoPerfilUrl;
+
+        await _repositorio.Atualizar(usuario.Id, usuario);
+    }
+
 
     public async Task<bool> Excluir(int id)
     {

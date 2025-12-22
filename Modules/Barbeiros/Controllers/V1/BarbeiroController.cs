@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BarbeariaPortifilio.API.Modules.Barbeiros.Controllers.V1;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/barbeiros")]
 public class BarbeiroController : ControllerBase
 {
     private readonly IBarbeiroServico _servico;

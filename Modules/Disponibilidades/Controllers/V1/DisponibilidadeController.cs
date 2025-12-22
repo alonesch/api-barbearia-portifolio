@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BarbeariaPortifolio.API.Modules.Disponibilidades.Controllers.V1;
 
 [ApiController]
-[Route("api/disponibilidade")]
+[Route("api/v1/disponibilidades")]
 public class DisponibilidadeController : ControllerBase
 {
     private readonly IDisponibilidadeServico _servico;

@@ -13,7 +13,7 @@ using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
 namespace BarbeariaPortifolio.API.Modules.Auth.Controllers.V2;
 
 [ApiController]
-[Route("api/auth")]
+[Route("api/v2/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthServico _auth;

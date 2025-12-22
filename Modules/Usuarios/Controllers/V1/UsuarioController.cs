@@ -7,7 +7,7 @@ using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
 
 namespace BarbeariaPortifolio.API.Modules.Usuarios.Controllers.V1;
 
-[Route("api/[controller]")]
+[Route("api/v1/usuarios")]
 [ApiController]
 public class UsuarioController : ControllerBase
 {

@@ -12,4 +12,5 @@ public interface IUsuarioServico
     Task<Usuario> Cadastrar(Usuario usuario);
     Task<bool> Atualizar(int id, Usuario usuario);
     Task<bool> Excluir(int id);
+    Task AtualizarFotoPerfil(int usuarioId, string fotoPerfilUrl);
 }

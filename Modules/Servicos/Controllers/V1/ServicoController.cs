@@ -6,7 +6,7 @@ using BarbeariaPortifolio.API.Shared.Exceptions;
 
 namespace BarbeariaPortifolio.API.Modules.Services.Controllers.V1;
 
-[Route("api/[controller]")]
+[Route("api/v1/servicos")]
 [ApiController]
 public class ServicoController : ControllerBase
 {

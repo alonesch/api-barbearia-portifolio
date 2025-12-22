@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace BarbeariaPortifolio.API.Modules.Clientes.Controllers.V1;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/clientes")]
 public class ClienteController : ControllerBase
 {
     private readonly IClienteServico _servico;
