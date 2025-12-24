@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
+
+
+namespace BarbeariaPortifolio.API.Modules.Barbeiros.Controllers.V2;
+
 [ApiController]
 [Route("api/v2/barbeiros")]
 [Authorize]

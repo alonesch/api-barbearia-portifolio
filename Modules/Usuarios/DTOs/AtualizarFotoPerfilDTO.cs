@@ -2,6 +2,6 @@
 {
     public class AtualizarFotoPerfilDTO
     {
-        public string FotoPerfilUrl { get; set; } = string.Empty;
+        public string? FotoPerfilUrl { get; set; }
     }
 }

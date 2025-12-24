@@ -19,23 +19,24 @@ public class UsuarioController : ControllerBase
     {
         _servico = servico;
     }
-
-    [HttpPost("me/foto")]
+    
+    [Authorize]
+    [HttpPatch("me/foto")]
     public async Task<IActionResult> AtualizarFotoPerfil([FromBody] AtualizarFotoPerfilDTO dto)
     {
-        var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var usuarioClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if (string.IsNullOrWhiteSpace(usuarioIdClaim))
+        if (string.IsNullOrWhiteSpace(usuarioClaim))
             return Unauthorized();
 
-        var usuarioId = int.Parse(usuarioIdClaim);
+        if (!int.TryParse(usuarioClaim, out var usuarioId))
+            return Unauthorized();
 
         await _servico.AtualizarFotoPerfil(usuarioId, dto.FotoPerfilUrl);
-
         return NoContent();
     }
 
-
+    [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<UsuarioPerfilDTO>> Me()
     {

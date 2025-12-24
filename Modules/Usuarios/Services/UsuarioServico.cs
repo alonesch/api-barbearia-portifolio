@@ -56,14 +56,14 @@ public class UsuarioServico : IUsuarioServico
         return await _repositorio.Atualizar(id, existente);
     }
 
-    public async Task AtualizarFotoPerfil(int usuarioId, string fotoPerfilUrl)
+    public async Task AtualizarFotoPerfil(int usuarioId, string? fotoPerfilUrl)
     {
-        if (string.IsNullOrWhiteSpace(fotoPerfilUrl))
-            throw new AppException("FotoPerfilUrl é obrigatória.", 400);
-
         var usuario = await _repositorio.BuscarPorId(usuarioId);
         if (usuario == null)
             throw new AppException("Usuário não encontrado.", 404);
+
+        if (usuario.FotoPerfilUrl == fotoPerfilUrl)
+            return;
 
         usuario.FotoPerfilUrl = fotoPerfilUrl;
 
