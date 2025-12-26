@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using BarbeariaPortifolio.API.Modules.Barbeiros.Models;
 
 namespace BarbeariaPortifolio.API.Modules.Usuarios.Models;
 
@@ -26,4 +27,6 @@ public class Usuario
     public bool Ativo { get; set; } = true;
 
     public string? FotoPerfilUrl { get; set; }
+
+    public Barbeiro? Barbeiro { get; set; }
 }

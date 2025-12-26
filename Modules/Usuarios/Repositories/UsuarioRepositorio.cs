@@ -17,12 +17,14 @@ public class UsuarioRepositorio : IUsuarioRepositorio
     public async Task<Usuario?> BuscarPorId(int id)
     {
         return await _banco.Usuarios
+            .Include(u => u.Barbeiro)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<Usuario?> BuscarPorNome(string nomeUsuario)
     {
         return await _banco.Usuarios
+            .Include(u => u.Barbeiro)
             .FirstOrDefaultAsync(u =>
                 u.NomeUsuario.ToLower() == nomeUsuario.ToLower()
             );
@@ -31,6 +33,7 @@ public class UsuarioRepositorio : IUsuarioRepositorio
     public async Task<Usuario?> BuscarPorEmail(string email)
     {
         return await _banco.Usuarios
+            .Include(u => u.Barbeiro)
             .FirstOrDefaultAsync(u =>
                 u.Email.ToLower() == email.ToLower()
             );

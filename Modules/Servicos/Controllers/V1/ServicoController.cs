@@ -8,11 +8,11 @@ namespace BarbeariaPortifolio.API.Modules.Services.Controllers.V1;
 
 [Route("api/v1/servicos")]
 [ApiController]
-public class ServicoController : ControllerBase
+public class ServicosController : ControllerBase
 {
     private readonly IServicoServico _servicoServico;
 
-    public ServicoController(IServicoServico servicoServico)
+    public ServicosController(IServicoServico servicoServico)
     {
         _servicoServico = servicoServico;
     }

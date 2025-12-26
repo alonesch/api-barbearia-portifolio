@@ -9,11 +9,11 @@ namespace BarbeariaPortifolio.API.Modules.Agendamentos.Controllers;
 
 [ApiController]
 [Route("api/v1/agendamentos")]
-public class AgendamentoController : ControllerBase
+public class AgendamentosController : ControllerBase
 {
     private readonly IAgendamentoServico _servico;
 
-    public AgendamentoController(IAgendamentoServico servico)
+    public AgendamentosController(IAgendamentoServico servico)
     {
         _servico = servico;
     }

@@ -9,11 +9,11 @@ namespace BarbeariaPortifolio.API.Modules.Usuarios.Controllers.V1;
 
 [Route("api/v1/usuarios")]
 [ApiController]
-public class UsuarioController : ControllerBase
+public class UsuariosController : ControllerBase
 {
     private readonly IUsuarioServico _servico;
 
-    public UsuarioController(IUsuarioServico servico)
+    public UsuariosController(IUsuarioServico servico)
     {
         _servico = servico;
     }

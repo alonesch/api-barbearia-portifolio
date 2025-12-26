@@ -27,59 +27,59 @@ public class DataContext : DbContext
     public DbSet<Disponibilidade> Disponibilidades { get; set; } = null!;
     public DbSet<EmailConfirmacaoToken> EmailConfirmacaoTokens { get; set; } = null!;
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<AgendamentoServico>()
-            .HasKey(x => new { x.AgendamentoId, x.ServicoId });
-
-        modelBuilder.Entity<Cliente>()
-            .Property(c => c.DataCadastro)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        modelBuilder.Entity<Agendamento>()
-            .Property(a => a.DataRegistro)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        modelBuilder.Entity<Agendamento>()
-            .Property(a => a.Status)
-            .HasDefaultValue(StatusAgendamento.Pendente);
-
-        modelBuilder.Entity<Barbeiro>()
-            .HasOne(b => b.Usuario)
-            .WithOne()
-            .HasForeignKey<Barbeiro>(b => b.UsuarioId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<Disponibilidade>(entity =>
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            entity.HasKey(x => x.Id);
+            modelBuilder.Entity<AgendamentoServico>()
+                .HasKey(x => new { x.AgendamentoId, x.ServicoId });
 
-            entity.Property(x => x.Data).IsRequired();
-            entity.Property(x => x.Hora).IsRequired();
+            modelBuilder.Entity<Cliente>()
+                .Property(c => c.DataCadastro)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            entity.Property(x => x.Ativo).HasDefaultValue(true);
-            entity.Property(x => x.DataCriacao).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            modelBuilder.Entity<Agendamento>()
+                .Property(a => a.DataRegistro)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            entity.HasOne(x => x.Barbeiro)
+            modelBuilder.Entity<Agendamento>()
+                .Property(a => a.Status)
+                .HasDefaultValue(StatusAgendamento.Pendente);
+
+            modelBuilder.Entity<Barbeiro>()
+                .HasOne(b => b.Usuario)
+                .WithOne(u => u.Barbeiro)
+                .HasForeignKey<Barbeiro>(b => b.UsuarioId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Disponibilidade>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Data).IsRequired();
+                entity.Property(x => x.Hora).IsRequired();
+
+                entity.Property(x => x.Ativo).HasDefaultValue(true);
+                entity.Property(x => x.DataCriacao).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.HasOne(x => x.Barbeiro)
+                    .WithMany()
+                    .HasForeignKey(x => x.BarbeiroId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<EmailConfirmacaoToken>()
+                .HasOne(e => e.Usuario)
                 .WithMany()
-                .HasForeignKey(x => x.BarbeiroId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+                .HasForeignKey(e => e.UsuarioId);
 
-        modelBuilder.Entity<EmailConfirmacaoToken>()
-            .HasOne(e => e.Usuario)
-            .WithMany()
-            .HasForeignKey(e => e.UsuarioId);
-
-        modelBuilder.Entity<Agendamento>()
-            .HasOne(a => a.Disponibilidade)
-            .WithMany(d => d.Agendamentos)
-            .HasForeignKey(a => a.DisponibilidadeId)
-            .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Agendamento>()
+                .HasOne(a => a.Disponibilidade)
+                .WithMany(d => d.Agendamentos)
+                .HasForeignKey(a => a.DisponibilidadeId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-        modelBuilder.Entity<Agendamento>()
-            .HasIndex(a => a.DisponibilidadeId)
-            .IsUnique();
+            modelBuilder.Entity<Agendamento>()
+                .HasIndex(a => a.DisponibilidadeId)
+                .IsUnique();
+        }
     }
-}

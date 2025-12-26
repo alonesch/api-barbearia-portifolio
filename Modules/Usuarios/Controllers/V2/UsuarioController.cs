@@ -1,5 +1,4 @@
 ﻿using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
-using BarbeariaPortifolio.API.Modules.Usuarios.Services;
 using BarbeariaPortifolio.API.Shared.Exceptions;
 using BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -11,11 +10,11 @@ namespace BarbeariaPortifolio.API.Modules.Usuarios.Controllers.V2;
 [ApiController]
 [Route("api/v2/usuarios")]
 [Authorize]
-public class UsuarioController : ControllerBase
+public class UsuariosController : ControllerBase
 {
     private readonly IUsuarioServico _servico;
 
-    public UsuarioController(IUsuarioServico servico)
+    public UsuariosController(IUsuarioServico servico)
     {
         _servico = servico;
     }

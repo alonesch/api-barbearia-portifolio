@@ -1,6 +1,4 @@
-﻿using BarbeariaPortifolio.API.Modules.Agendamentos.DTOs;
-using BarbeariaPortifolio.API.Modules.Agendamentos.Services;
-using BarbeariaPortifolio.API.Modules.Agendamentos.Services.Interfaces;
+﻿using BarbeariaPortifolio.API.Modules.Agendamentos.Services.Interfaces;
 using BarbeariaPortifolio.API.Modules.Barbeiros.Services.Interfaces;
 using BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -42,13 +40,11 @@ public class BarbeirosController : ControllerBase
 
         var usuarioId = int.Parse(userIdClaim.Value);
 
-        // ✅ resolve barbeiro no service CERTO
         var barbeiro = await _servico.BuscarPorUsuarioId(usuarioId);
 
         if (barbeiro == null)
             return NotFound("Barbeiro não encontrado");
 
-        // ✅ stats continuam no AgendamentoService
         var stats = await _agendamentoServico.BuscarStatsBarbeiro(barbeiro.Id);
 
         return Ok(stats);

@@ -8,11 +8,11 @@ namespace BarbeariaPortifolio.API.Modules.Disponibilidades.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/disponibilidades")]
-public class DisponibilidadeController : ControllerBase
+public class DisponibilidadesController : ControllerBase
 {
     private readonly IDisponibilidadeServico _servico;
 
-    public DisponibilidadeController(IDisponibilidadeServico servico)
+    public DisponibilidadesController(IDisponibilidadeServico servico)
     {
         _servico = servico;
     }
