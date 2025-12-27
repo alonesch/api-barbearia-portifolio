@@ -95,7 +95,7 @@ public class AuthServico : IAuthServico
 
         await _emailTokens.CriarAsync(confirmacao);
 
-        // ✅ URL CORRETA
+
         var link = $"{_config["API_URL"]}/api/v2/auth/confirmar-email?token={token}";
 
         try
@@ -108,6 +108,19 @@ public class AuthServico : IAuthServico
         }
 
         return usuario;
+    }
+
+    //CHECK DE USERNAME E EMAIL
+    public async Task<bool> UsernameDisponivel(string nomeUsuario)
+    {
+       var usuario = await _usuarios.BuscarPorNome(nomeUsuario);
+            return usuario == null;
+    }
+
+    public async Task<bool> EmailDisponivel(string email)
+    {
+        var usuario = await _usuarios.BuscarPorEmail(email);
+            return usuario == null;
     }
 
     // ======================================================
@@ -170,7 +183,7 @@ public class AuthServico : IAuthServico
         });
     }
 
-   
+
 
     // ======================================================
     // EMAIL - REENVIO

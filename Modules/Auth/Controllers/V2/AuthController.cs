@@ -52,6 +52,39 @@ public class AuthController : ControllerBase
         return Ok(new { mensagem = "Email confirmado com sucesso." });
     }
 
+    [HttpGet("check-username")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CheckUsername([FromQuery] string nomeUsuario)
+    {
+        if (string.IsNullOrWhiteSpace(nomeUsuario))
+            throw new AppException("Username inválido", 400);
+
+        var disponivel= await _auth.UsernameDisponivel(nomeUsuario);
+        return Ok(new
+        {
+            mensagem = disponivel
+            ? "Nome de usuário disponivel."
+            : "Nome de usuário indisponivel.",
+            dados = new { disponivel }
+        });
+    }
+
+    [HttpGet("check-email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CheckEmail([FromQuery] string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new AppException("Email inválido", 400);
+        var disponivel = await _auth.EmailDisponivel(email);
+        return Ok(new
+        {
+            mensagem = disponivel
+            ? "Email disponivel."
+            : "Email indisponivel.",
+            dados = new { disponivel }
+        });
+    }
+
 
     [HttpPost("register")]
     [AllowAnonymous]
@@ -132,5 +165,6 @@ public class AuthController : ControllerBase
             mensagem = "Se existir uma conta com este e-mail, um novo link de confirmação foi enviado."
         });
     }
+
 
 }

@@ -22,5 +22,8 @@ public interface IAuthServico
     Task ReenviarConfirmacaoEmailAsync(ReenviarConfirmacaoEmailDto dto);
 
     Task ConfirmarEmailAsync(string token);
+   
+    Task<bool> UsernameDisponivel(string NomeUsuario);
+    Task<bool> EmailDisponivel(string Email);
 
 }
