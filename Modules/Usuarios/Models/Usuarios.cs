@@ -10,13 +10,13 @@ public class Usuario
     [Required]
     public string NomeUsuario { get; set; } = string.Empty;   
 
-    [Required, EmailAddress]
+    
     public string Email { get; set; } = string.Empty;         
 
     [Required]
     public string SenhaHash { get; set; } = string.Empty;
 
-    [Required]
+    
     public string NomeCompleto { get; set; } = string.Empty;
 
     [Required]
