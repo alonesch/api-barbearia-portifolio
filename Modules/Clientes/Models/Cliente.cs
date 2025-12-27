@@ -17,10 +17,6 @@ public class Cliente
     [Column(TypeName = "varchar(15)")]
     public string? Cpf { get; set; }
 
-    [Required]
-    [Column(TypeName = "varchar(15)")]
-    public string Telefone { get; set; } = null!;
-
     [Column(TypeName = "timestamp with time zone")]
     public DateTime DataCadastro { get; set; }
 }

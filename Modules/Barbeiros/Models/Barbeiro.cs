@@ -14,10 +14,6 @@ public class Barbeiro
     [Column(TypeName = "varchar(150)")]
     public string? Nome { get; set; }
 
-    [Column(TypeName = "varchar(15)")]
-    [Required]
-    public string Telefone { get; set; } = string.Empty;
-
     public int? UsuarioId { get; set; }
     public Usuario? Usuario { get; set; }
 

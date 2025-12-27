@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using BarbeariaPortifolio.API.Modules.Barbeiros.Models;
+﻿using BarbeariaPortifolio.API.Modules.Barbeiros.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BarbeariaPortifolio.API.Modules.Usuarios.Models;
 
@@ -29,4 +30,8 @@ public class Usuario
     public string? FotoPerfilUrl { get; set; }
 
     public Barbeiro? Barbeiro { get; set; }
+
+    [Required]
+    [Column(TypeName = "varchar(15)")]
+    public string? Telefone { get; set; }
 }

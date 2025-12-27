@@ -28,7 +28,7 @@ public class ClienteServico : IClienteServico
             NomeCompleto = cliente.Usuario?.NomeCompleto ?? "",
             Email = cliente.Usuario?.Email ?? "",
             Cpf = cliente.Cpf,
-            Telefone = cliente.Telefone ?? "",
+            Telefone = cliente.Usuario?.Telefone ?? "",
             DataCadastro = cliente.DataCadastro,
             FotoPerfilUrl = cliente.Usuario?.FotoPerfilUrl
            
@@ -37,8 +37,6 @@ public class ClienteServico : IClienteServico
 
     public async Task<ClienteDTO> CriarPerfil(int usuarioId, ClienteDTO dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Telefone))
-            throw new AppException("Telefone é obrigatório", 400);
 
         var existente = await _repositorio.BuscarPorUsuario(usuarioId);
         if (existente != null)
@@ -47,7 +45,6 @@ public class ClienteServico : IClienteServico
         var novo = new Cliente
         {
             UsuarioId = usuarioId,
-            Telefone = dto.Telefone,
             Cpf = dto.Cpf,
             DataCadastro = DateTime.UtcNow
         };
@@ -60,7 +57,7 @@ public class ClienteServico : IClienteServico
             NomeCompleto = criado.Usuario?.NomeCompleto ?? "",
             Email = criado.Usuario?.Email ?? "",
             Cpf = criado.Cpf,
-            Telefone = criado.Telefone ?? "",
+            Telefone = criado.Usuario?.Telefone ?? "",
             DataCadastro = criado.DataCadastro
         };
     }
@@ -72,7 +69,7 @@ public class ClienteServico : IClienteServico
         if (cliente == null)
             throw new AppException("Perfil de cliente não encontrado", 404);
 
-        cliente.Telefone = dto.Telefone;
+        cliente.Usuario.Telefone = dto.Telefone;
         cliente.Cpf = dto.Cpf;
 
         return await _repositorio.Atualizar(cliente);

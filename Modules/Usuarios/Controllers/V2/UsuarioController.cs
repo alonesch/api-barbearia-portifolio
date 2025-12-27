@@ -18,7 +18,7 @@ public class UsuariosController : ControllerBase
     {
         _servico = servico;
     }
-    
+
     [Authorize]
     [HttpPatch("me/foto")]
     public async Task<IActionResult> AtualizarFotoPerfil([FromBody] AtualizarFotoPerfilDTO dto)
@@ -51,9 +51,28 @@ public class UsuariosController : ControllerBase
         if (usuario == null)
             throw new AppException("Usuário não encontrado.", 404);
 
-        
+
         var dto = UsuarioMapper.ToPerfilDTO(usuario);
 
         return Ok(dto);
     }
+
+
+    [Authorize]
+    [HttpPatch("me")]
+    public async Task<IActionResult> AtualizarMe(
+      [FromBody] AtualizarUsuarioPerfilDTO dto
+  )
+    {
+        var usuarioId = int.Parse(User.FindFirst("id")!.Value);
+
+        var usuario = await _servico.AtualizarMeAsync(usuarioId, dto);
+
+        return Ok(new
+        {
+            mensagem = "Perfil atualizado com sucesso.",
+            dados = usuario
+        });
+    }
 }
+

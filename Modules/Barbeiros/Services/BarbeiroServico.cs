@@ -25,7 +25,7 @@ public class BarbeiroServico : IBarbeiroServico
         {
             Id = b.Id,
             Nome = b.Nome,
-            Telefone = b.Telefone,
+            Telefone = b.Usuario?.Telefone ?? string.Empty,
             Usuario = b.Usuario?.NomeUsuario,
             Agendamentos = b.Agendamentos?.Select(a => new AgendamentoDTO
             {
@@ -55,7 +55,7 @@ public class BarbeiroServico : IBarbeiroServico
         {
             Id = b.Id,
             Nome = b.Nome,
-            Telefone = b.Telefone,
+            Telefone = b.Usuario?.Telefone ?? string.Empty,
             Usuario = b.Usuario?.NomeUsuario,
             Agendamentos = b.Agendamentos?.Select(a => new AgendamentoDTO
             {
@@ -87,7 +87,7 @@ public class BarbeiroServico : IBarbeiroServico
         {
             Id = barbeiro.Id,
             Nome = barbeiro.Nome,
-            Telefone = barbeiro.Telefone,
+            Telefone = barbeiro.Usuario?.Telefone ?? string.Empty,
             Usuario = barbeiro.Usuario?.NomeUsuario
         };
     }
@@ -98,13 +98,9 @@ public class BarbeiroServico : IBarbeiroServico
         if (string.IsNullOrWhiteSpace(dto.Nome))
             throw new AppException("O nome do barbeiro é obrigatório.", 400);
 
-        if (string.IsNullOrWhiteSpace(dto.Telefone))
-            throw new AppException("O telefone do barbeiro é obrigatório.", 400);
-
         var barbeiro = new Barbeiro
         {
             Nome = dto.Nome,
-            Telefone = dto.Telefone,
             UsuarioId = dto.UsuarioId
         };
 
@@ -114,7 +110,7 @@ public class BarbeiroServico : IBarbeiroServico
         {
             Id = barbeiro.Id,
             Nome = barbeiro.Nome,
-            Telefone = barbeiro.Telefone,
+            Telefone = barbeiro.Usuario?.Telefone ?? string.Empty,
             Usuario = barbeiro.Usuario?.NomeUsuario,
             Agendamentos = new List<AgendamentoDTO>()
         };
@@ -128,11 +124,8 @@ public class BarbeiroServico : IBarbeiroServico
         if (string.IsNullOrWhiteSpace(dto.Nome))
             throw new AppException("O nome do barbeiro é obrigatório.", 400);
 
-        if (string.IsNullOrWhiteSpace(dto.Telefone))
-            throw new AppException("O telefone do barbeiro é obrigatório.", 400);
 
         existente.Nome = dto.Nome;
-        existente.Telefone = dto.Telefone;
         existente.UsuarioId = dto.UsuarioId;
 
         return await _repositorio.Atualizar(id, existente);

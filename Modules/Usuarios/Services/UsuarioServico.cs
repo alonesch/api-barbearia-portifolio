@@ -2,6 +2,7 @@
 using BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
 using BarbeariaPortifolio.API.Modules.Usuarios.Models;
 using BarbeariaPortifolio.API.Shared.Exceptions;
+using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
 
 namespace BarbeariaPortifolio.API.Modules.Usuarios.Services;
 
@@ -55,6 +56,30 @@ public class UsuarioServico : IUsuarioServico
 
         return await _repositorio.Atualizar(id, existente);
     }
+
+
+    //v2
+    public async Task<Usuario> AtualizarMeAsync(
+    int usuarioId,
+    AtualizarUsuarioPerfilDTO dto
+)
+    {
+        var existente = await _repositorio.BuscarPorId(usuarioId);
+
+        if (existente == null)
+            throw new AppException("Usuário não encontrado.", 404);
+
+        if (!string.IsNullOrWhiteSpace(dto.NomeCompleto))
+            existente.NomeCompleto = dto.NomeCompleto;
+
+        if (!string.IsNullOrWhiteSpace(dto.Email))
+            existente.Email = dto.Email;
+
+        await _repositorio.Atualizar(existente.Id, existente);
+
+        return existente; // 👈 ISSO resolve o erro de contrato
+    }
+
 
     public async Task AtualizarFotoPerfil(int usuarioId, string? fotoPerfilUrl)
     {

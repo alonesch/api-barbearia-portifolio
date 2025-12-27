@@ -23,7 +23,7 @@ public class UsuariosController : ControllerBase
     // public async Task<IActionResult> ListarTodos()
     //     => Ok(await _servico.ListarTodos());
 
-    //[Authorize(Policy = "Admin")]
+    [Authorize(Policy = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> BuscarPorId(int id)
     {
@@ -42,7 +42,7 @@ public class UsuariosController : ControllerBase
         return Ok(usuarioDto);
     }
 
-    //[Authorize(Policy = "AdminOuBarbeiro")]
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Cadastrar([FromBody] Usuario usuario)
     {
