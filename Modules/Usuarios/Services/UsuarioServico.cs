@@ -59,25 +59,36 @@ public class UsuarioServico : IUsuarioServico
 
 
     //v2
-    public async Task<Usuario> AtualizarMeAsync(
+    public async Task<UsuarioPerfilDTO> AtualizarMeAsync(
     int usuarioId,
     AtualizarUsuarioPerfilDTO dto
 )
     {
-        var existente = await _repositorio.BuscarPorId(usuarioId);
-
-        if (existente == null)
-            throw new AppException("Usuário não encontrado.", 404);
+        var usuario = await _repositorio.BuscarPorId(usuarioId)
+            ?? throw new AppException("Usuário não encontrado.", 404);
 
         if (!string.IsNullOrWhiteSpace(dto.NomeCompleto))
-            existente.NomeCompleto = dto.NomeCompleto;
+            usuario.NomeCompleto = dto.NomeCompleto;
 
         if (!string.IsNullOrWhiteSpace(dto.Email))
-            existente.Email = dto.Email;
+            usuario.Email = dto.Email;
 
-        await _repositorio.Atualizar(existente.Id, existente);
+        if (!string.IsNullOrWhiteSpace(dto.Telefone))
+            usuario.Telefone = dto.Telefone;
 
-        return existente; // 👈 ISSO resolve o erro de contrato
+        await _repositorio.Atualizar(usuarioId, usuario);
+
+        return new UsuarioPerfilDTO
+        {
+            Id = usuario.Id,
+            NomeCompleto = usuario.NomeCompleto,
+            NomeUsuario = usuario.NomeUsuario,
+            Email = usuario.Email,
+            Telefone = usuario.Telefone,
+            Cargo = usuario.Cargo,
+            FotoPerfilUrl = usuario.FotoPerfilUrl,
+            BarbeiroId = usuario.Barbeiro?.Id
+        };
     }
 
 

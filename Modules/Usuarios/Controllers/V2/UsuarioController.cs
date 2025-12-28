@@ -60,18 +60,19 @@ public class UsuariosController : ControllerBase
 
     [Authorize]
     [HttpPatch("me")]
-    public async Task<IActionResult> AtualizarMe(
-      [FromBody] AtualizarUsuarioPerfilDTO dto
-  )
+    public async Task<IActionResult> AtualizarMe([FromBody] AtualizarUsuarioPerfilDTO dto)
     {
-        var usuarioId = int.Parse(User.FindFirst("id")!.Value);
+        var usuarioId = int.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? throw new AppException("Usuário não autenticado.", 401)
+        );
 
-        var usuario = await _servico.AtualizarMeAsync(usuarioId, dto);
+        var usuarioDto = await _servico.AtualizarMeAsync(usuarioId, dto);
 
         return Ok(new
         {
             mensagem = "Perfil atualizado com sucesso.",
-            dados = usuario
+            dados = usuarioDto
         });
     }
 }

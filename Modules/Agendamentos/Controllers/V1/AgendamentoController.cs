@@ -82,6 +82,7 @@ public class AgendamentosController : ControllerBase
 
         return CreatedAtAction(nameof(Buscar), new { Id = novo.Id }, new
         {
+            sucess = true,
             mensagem = "Agendamento criado com sucesso!",
             dados = novo
         });

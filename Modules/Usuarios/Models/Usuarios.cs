@@ -31,7 +31,7 @@ public class Usuario
 
     public Barbeiro? Barbeiro { get; set; }
 
-    [Required]
+    
     [Column(TypeName = "varchar(15)")]
     public string? Telefone { get; set; }
 }

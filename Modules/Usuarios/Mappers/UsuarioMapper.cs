@@ -11,6 +11,7 @@ public static class UsuarioMapper
             NomeCompleto = usuario.NomeCompleto,
             Email = usuario.Email,
             Cargo = usuario.Cargo,
+            Telefone = usuario.Telefone,
             FotoPerfilUrl = usuario.FotoPerfilUrl,
             BarbeiroId = usuario.Barbeiro?.Id   
         };
