@@ -100,7 +100,7 @@ public class AuthServico : IAuthServico
 
         try
         {
-            await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
+            await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, usuario.NomeCompleto, link);
         }
         catch (Exception ex)
         {
@@ -218,7 +218,7 @@ public class AuthServico : IAuthServico
         // ✅ URL CORRETA
         var link = $"{_config["API_URL"]}/api/v2/auth/confirmar-email?token={token.Token}";
 
-        await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, link);
+        await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, usuario.NomeCompleto, link);
     }
 
     // ======================================================

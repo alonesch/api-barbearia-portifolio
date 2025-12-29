@@ -14,7 +14,11 @@ public class EmailServico : IEmailServico
         _config = config;
     }
 
-    public async Task EnviarConfirmacaoEmailAsync(string email, string link)
+    public async Task EnviarConfirmacaoEmailAsync(
+        string email,
+        string nomeUsuario,
+        string link
+    )
     {
         var host = _config["EMAIL_HOST"];
         var port = int.Parse(_config["EMAIL_PORT"]!);
@@ -30,6 +34,38 @@ public class EmailServico : IEmailServico
             throw new Exception("Configuração SMTP incompleta");
         }
 
+        // =========================
+        // CARREGAR TEMPLATE HTML
+        // =========================
+        var templatePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "Templates",
+            "email-confirmacao.html"
+        );
+
+        if (!File.Exists(templatePath))
+            throw new FileNotFoundException("Template de e-mail não encontrado", templatePath);
+
+        var htmlTemplate = await File.ReadAllTextAsync(templatePath);
+
+        // =========================
+        // MAPA DE TAGS (CONTRATO)
+        // =========================
+        var tags = new Dictionary<string, string>
+        {
+            ["<nome-usuario>"] = nomeUsuario,
+            ["<link-confirmacao>"] = link,
+            ["<ano-atual>"] = DateTime.Now.Year.ToString()
+        };
+
+        foreach (var tag in tags)
+        {
+            htmlTemplate = htmlTemplate.Replace(tag.Key, tag.Value);
+        }
+
+        // =========================
+        // MONTAR E-MAIL
+        // =========================
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(name, from));
         message.To.Add(MailboxAddress.Parse(email));
@@ -37,14 +73,12 @@ public class EmailServico : IEmailServico
 
         message.Body = new TextPart("html")
         {
-            Text = $@"
-                    <h2>Confirmação de e-mail</h2>
-                    <p>Para concluir seu cadastro, clique no link abaixo:</p>
-                    <p><a href='{link}'>Confirmar e-mail</a></p>
-                    <p>Se você não criou essa conta, ignore este e-mail.</p>
-                "
+            Text = htmlTemplate
         };
 
+        // =========================
+        // ENVIAR
+        // =========================
         using var client = new SmtpClient();
 
         await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
@@ -52,6 +86,6 @@ public class EmailServico : IEmailServico
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
 
-        Console.WriteLine($"[EMAIL] Enviado com sucesso para {email}");
+        Console.WriteLine($"[EMAIL] Confirmação enviada para {email}");
     }
 }
