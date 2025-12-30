@@ -1,65 +1,110 @@
-using BarbeariaPortifolio.API.Auth;
-using BarbeariaPortifolio.API.Data;
-using BarbeariaPortifolio.API.Middleware;
-using BarbeariaPortifolio.API.Repositorios;
-using BarbeariaPortifolio.API.Repositorios.Interfaces;
-using BarbeariaPortifolio.API.Servicos;
-using BarbeariaPortifolio.API.Servicos.Interfaces;
+using BarbeariaPortifolio.API.Shared.Data;
+using BarbeariaPortifolio.API.Shared.Middleware;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Modules.Repositories;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Repositories;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Repositories.Interfaces;
+// ================= AGENDAMENTOS =================
+using BarbeariaPortifolio.API.Modules.Agendamentos.Services;
+using BarbeariaPortifolio.API.Modules.Agendamentos.Services.Interfaces;
+// ================= AUTH =================
+using BarbeariaPortifolio.API.Modules.Auth.Jwt;
+using BarbeariaPortifolio.API.Modules.Auth.Repositories;
+using BarbeariaPortifolio.API.Modules.Auth.Repositories.Interfaces;
+using BarbeariaPortifolio.API.Modules.Auth.Services;
+using BarbeariaPortifolio.API.Modules.Auth.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Barbeiros.Repositories;
+using BarbeariaPortifolio.API.Modules.Barbeiros.Repositories.Interfaces;
+// ================= BARBEIROS =================
+using BarbeariaPortifolio.API.Modules.Barbeiros.Services;
+using BarbeariaPortifolio.API.Modules.Barbeiros.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Clientes.Repositories;
+using BarbeariaPortifolio.API.Modules.Clientes.Repositories.Interfaces;
+// ================= CLIENTES =================
+using BarbeariaPortifolio.API.Modules.Clientes.Services;
+using BarbeariaPortifolio.API.Modules.Clientes.Services.Interfaces;
+// ================= DISPONIBILIDADES =================
+using BarbeariaPortifolio.API.Modules.Disponibilidades.Services;
+using BarbeariaPortifolio.API.Modules.Disponibilidades.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Services.Repositories;
+using BarbeariaPortifolio.API.Modules.Services.Repositories.Interfaces;
+using BarbeariaPortifolio.API.Modules.Services.Respositories;
+// ================= SERVIÇOS =================
+using BarbeariaPortifolio.API.Modules.Services.Services;
+using BarbeariaPortifolio.API.Modules.Services.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Usuarios.Repositories;
+using BarbeariaPortifolio.API.Modules.Usuarios.Repositories.Interfaces;
+// ================= USUÁRIOS =================
+using BarbeariaPortifolio.API.Modules.Usuarios.Services;
+using BarbeariaPortifolio.API.Modules.Usuarios.Services.Interfaces;
+// ================= INFRA =================
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Net;
 using System.Text;
+using System.Threading.RateLimiting;
 
+
+DotNetEnv.Env.Load();
 // =======================================================================
 // BUILDER
 // =======================================================================
 var builder = WebApplication.CreateBuilder(args);
 
+
 // =======================================================================
-// SWAGGER
+// CONTROLLERS + SWAGGER
 // =======================================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddSingleton<TokenService>();
-builder.Services.AddAuthorization();
-
-// =======================================================================
-// DATABASE
-// =======================================================================
-var envApp = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-
-var pgConnection = builder.Configuration.GetConnectionString("Postgres");
-
-if (string.IsNullOrWhiteSpace(pgConnection))
+builder.Services.AddSwaggerGen(c =>
 {
-    pgConnection = Environment.GetEnvironmentVariable(
-        envApp == "Development" ? "POSTGRES_CONNECTION_DEV" : "POSTGRES_CONNECTION");
-}
+    c.SwaggerDoc("v1", new() { Title = "Barbearia API", Version = "v1" });
 
-if (string.IsNullOrWhiteSpace(pgConnection))
-{
-    throw new Exception("String de conexão 'Postgres' não encontrada!");
-}
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Cole aqui o token JWT"
+    });
 
-builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(pgConnection));
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    c.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
+    c.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
+});
 
 // =======================================================================
 // JWT
 // =======================================================================
-var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()!;
-var keyValue = builder.Configuration["Jwt:Key"] ?? string.Empty;
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.AddSingleton<TokenService>();
 
-if (string.IsNullOrWhiteSpace(keyValue))
-{
-    Console.WriteLine("❌ Nenhuma chave JWT encontrada!");
-    Environment.Exit(1);
-}
 
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
+var jwtKey =
+    builder.Configuration["Jwt:Key"] is { Length: > 0 } keyFromConfig
+        ? keyFromConfig
+        : Environment.GetEnvironmentVariable("JWT_KEY")
+          ?? throw new Exception("JWT_KEY não configurada");
+
 
 builder.Services
     .AddAuthentication(options =>
@@ -71,6 +116,7 @@ builder.Services
     {
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -79,35 +125,117 @@ builder.Services
             ValidateLifetime = true,
             RequireSignedTokens = true,
             RequireExpirationTime = true,
-            ValidIssuer = jwt.Issuer,
-            ValidAudience = jwt.Audience,
-            IssuerSigningKey = key,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey)
+            ),
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
+
+
+// =======================================================================
+// AUTHORIZATION (ROLES)
+// =======================================================================
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOuBarbeiro", policy =>
+        policy.RequireRole("Admin", "Barbeiro")
+    );
+});
+
+// =======================================================================
+// RATE LIMITING (LOGIN)
+// =======================================================================
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("LoginPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            })
+    );
+
+    options.OnRejected = async (context, _) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        await context.HttpContext.Response.WriteAsync(
+            """{ "erro": "Muitas tentativas. Aguarde 1 minuto para tentar novamente." }"""
+        );
+    };
+    options.AddPolicy("ConfirmarEmailPolicy", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress;
+
+        
+        var partitionKey = ip?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+
+});
+
+// =======================================================================
+// DATABASE  
+// =======================================================================
+var env = builder.Environment.EnvironmentName;
+
+Console.WriteLine($"[BOOT] ASPNETCORE_ENVIRONMENT = {env}");
+Console.WriteLine($"[BOOT] POSTGRES_CONNECTION_DEV = [{Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_DEV")}]");
+Console.WriteLine($"[BOOT] POSTGRES_CONNECTION = [{Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")}]");
+
+var pgConnection =
+    Environment.GetEnvironmentVariable("POSTGRES_CONNECTION")
+    ?? (env == Environments.Development
+        ? Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_DEV")
+        : null);
+
+
+if (string.IsNullOrWhiteSpace(pgConnection))
+{
+    throw new Exception($"String de conexão Postgres não encontrada para ambiente: {env}");
+}
+
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseNpgsql(pgConnection));
 
 // =======================================================================
 // CORS
 // =======================================================================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("prd", policy =>
-        policy.WithOrigins("https://barbearia-gabriel-port.vercel.app")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
-    );
+    options.AddPolicy("prd", p =>
+        p.WithOrigins("https://www.barbercloud.online")
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials());
 
-    options.AddPolicy("dev", policy =>
-        policy.WithOrigins(
-                "https://dev-barbearia-gabriel-port.vercel.app",
-                "http://localhost:5173",
-                "http://localhost:3000"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-    );
+    options.AddPolicy("dev", p =>
+        p.WithOrigins(
+            "https://dev.barbercloud.online",
+            "http://localhost:5173",
+            "http://localhost:3000"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 // =======================================================================
@@ -125,9 +253,12 @@ builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IUsuarioServico, UsuarioServico>();
 builder.Services.AddScoped<IAuthServico, AuthServico>();
 builder.Services.AddScoped<IRefreshTokenRepositorio, RefreshTokenRepositorio>();
+builder.Services.AddScoped<IDisponibilidadeServico, DisponibilidadeServico>();
+builder.Services.AddScoped<IEmailConfirmacaoTokenRepositorio, EmailConfirmacaoTokenRepositorio>();
+builder.Services.AddScoped<IEmailServico, EmailServico>();
 
 // =======================================================================
-// KESTREL OPTIMIZATION
+// KESTREL
 // =======================================================================
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -136,38 +267,40 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
 });
 
-ThreadPool.SetMinThreads(100, 100);
-
 builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // =======================================================================
-// BUILD APP
+// BUILD
 // =======================================================================
 var app = builder.Build();
 
 // =======================================================================
-// ERROR HANDLING
+// GLOBAL ERROR HANDLER
 // =======================================================================
 app.UseMiddleware<TratamentoDeErros>();
 
-// =======================================================================
-// MIGRATIONS ON BOOT
-// =======================================================================
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-        db.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"❌ Erro ao aplicar migrations: {ex.Message}");
-    }
-}
 
 // =======================================================================
-// SWAGGER (DEV only)
+// MIGRATIONS ON STARTUP
+// =======================================================================
+//if (!builder.Environment.IsEnvironment("DesignTime"))
+//{
+//    using var scope = app.Services.CreateScope();
+//    try
+//    {
+//        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+//        db.Database.Migrate();
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine($"[MIGRATION SKIPPED] {ex.Message}");
+//    }
+//}
+
+
+
+// =======================================================================
+// SWAGGER (DEV)
 // =======================================================================
 if (app.Environment.IsDevelopment())
 {
@@ -176,22 +309,26 @@ if (app.Environment.IsDevelopment())
 }
 
 // =======================================================================
-// MIDDLEWARE PIPELINE
+// PIPELINE
 // =======================================================================
 app.UseRouting();
 
-app.UseCors(envApp == "Development" ? "dev" : "prd");
+app.UseCors(env == Environments.Development ? "dev" : "prd");
 
+// Security Headers
 app.Use(async (context, next) =>
 {
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
     await next();
 });
+
+app.UseWhen(
+    context => context.Request.Method != HttpMethods.Options,
+    appBuilder => appBuilder.UseRateLimiter()
+    );
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -202,9 +339,11 @@ app.MapGet("/ping", () => Results.Ok("pong"));
 // CONTROLLERS
 app.MapControllers();
 
-Console.WriteLine($"🌍 Ambiente ativo: {envApp}");
+Console.WriteLine($"Ambiente ativo: {env}");
+
+
 
 // =======================================================================
-// RUN APP
+// RUN
 // =======================================================================
 app.Run();

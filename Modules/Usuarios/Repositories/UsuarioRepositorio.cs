@@ -1,0 +1,70 @@
+﻿using BarbeariaPortifolio.API.Shared.Data;
+using BarbeariaPortifolio.API.Modules.Usuarios.Models;
+using BarbeariaPortifolio.API.Modules.Usuarios.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace BarbeariaPortifolio.API.Modules.Usuarios.Repositories;
+
+public class UsuarioRepositorio : IUsuarioRepositorio
+{
+    private readonly DataContext _banco;
+
+    public UsuarioRepositorio(DataContext banco)
+    {
+        _banco = banco;
+    }
+
+    public async Task<Usuario?> BuscarPorId(int id)
+    {
+        return await _banco.Usuarios
+            .Include(u => u.Barbeiro)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<Usuario?> BuscarPorNome(string nomeUsuario)
+    {
+        return await _banco.Usuarios
+            .Include(u => u.Barbeiro)
+            .FirstOrDefaultAsync(u =>
+                u.NomeUsuario.ToLower() == nomeUsuario.ToLower()
+            );
+    }
+
+    public async Task<Usuario?> BuscarPorEmail(string email)
+    {
+        return await _banco.Usuarios
+            .Include(u => u.Barbeiro)
+            .FirstOrDefaultAsync(u =>
+                u.Email.ToLower() == email.ToLower()
+            );
+    }
+
+    public async Task<Usuario> Cadastrar(Usuario usuario)
+    {
+        _banco.Usuarios.Add(usuario);
+        await _banco.SaveChangesAsync();
+        return usuario;
+    }
+
+    public async Task<bool> Atualizar(int id, Usuario usuario)
+    {
+        if (id != usuario.Id)
+            return false;
+
+        _banco.Entry(usuario).State = EntityState.Modified;
+        await _banco.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> Excluir(int id)
+    {
+        var usuario = await _banco.Usuarios.FindAsync(id);
+
+        if (usuario == null)
+            return false;
+
+        _banco.Usuarios.Remove(usuario);
+        await _banco.SaveChangesAsync();
+        return true;
+    }
+}

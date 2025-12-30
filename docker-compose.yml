@@ -1,0 +1,89 @@
+services:
+  db:
+    image: postgres:16
+    container_name: barbercloud-postgres-dev
+    restart: unless-stopped
+
+   
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    dns_search: []
+    dns_opt:
+      - use-vc   
+
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5432:5432" # DEV
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - barbercloud_net
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: barbercloud-api-dev
+    restart: unless-stopped
+
+    
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    dns_search: []
+    dns_opt:
+      - use-vc   
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    env_file:
+      - .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      POSTGRES_CONNECTION: ${POSTGRES_CONNECTION}
+      JWT__KEY: ${JWT__KEY}
+
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_NAME: ${EMAIL_NAME}
+
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_URL: ${API_URL}
+
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+
+    ports:
+      - "8080:8080"
+
+    networks:
+      - barbercloud_net
+
+
+volumes:
+  postgres_data:
+
+
+networks:
+  barbercloud_net:
+    driver: bridge
