@@ -46,13 +46,20 @@ using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
 
-
-DotNetEnv.Env.Load();
 // =======================================================================
 // BUILDER
 // =======================================================================
+
 var builder = WebApplication.CreateBuilder(args);
 
+// =======================================================================
+// .env (DEV ONLY)
+// =======================================================================
+
+if (builder.Environment.IsDevelopment())
+{
+    DotNetEnv.Env.Load();
+}
 
 // =======================================================================
 // CONTROLLERS + SWAGGER
