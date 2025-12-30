@@ -1,4 +1,4 @@
-# API Barbearia - Portfólio
+# API Barbercloud
 
 API REST construída em .NET 9 para gerenciar uma barbearia/portfólio — autenticação por JWT, segurança de senhas com BCrypt e banco de dados PostgreSQL. Projetada para ser executada em VPS (via Docker ou diretamente com Kestrel + Nginx). Fornece endpoints para autenticação, usuários, serviços, agendamentos e gerenciamento de portfólio.
 
@@ -6,508 +6,232 @@ API REST construída em .NET 9 para gerenciar uma barbearia/portfólio — auten
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![Status](https://img.shields.io/badge/status-production-ready-brightgreen)]()
 
-Sumário
-- [Visão Geral](#visão-geral)
-- [Principais Tecnologias](#principais-tecnologias)
-- [Funcionalidades](#funcionalidades)
-- [Arquitetura e Diagramas (Mermaid)](#arquitetura-e-diagramas-mermaid)
-  - [Visão Geral da Arquitetura (flowchart)](#visão-geral-da-arquitetura-flowchart)
-  - [Implantação / Infra (graph LR)](#implantação--infra-graph-lr)
-  - [Fluxo de Autenticação (sequenceDiagram)](#fluxo-de-autenticação-sequencediagram)
-  - [Fluxo de Agendamento (sequenceDiagram)](#fluxo-de-agendamento-sequencediagram)
-- [Organização do Código](#organização-do-código)
-- [Requisitos](#requisitos)
-- [Instalação e Execução Local](#instalação-e-execução-local)
-  - [1. Clonar o repositório](#1-clonar-o-repositório)
-  - [2. Variáveis de ambiente / appsettings](#2-variáveis-de-ambiente--appsettings)
-  - [3. Migrations e banco de dados](#3-migrations-e-banco-de-dados)
-  - [4. Executar localmente](#4-executar-localmente)
-- [Docker / Docker Compose (Desenvolvimento e Produção)](#docker--docker-compose-desenvolvimento-e-produção)
-- [Deploy em VPS (guia recomendado)](#deploy-em-vps-guia-recomendado)
-  - [Opção A: Docker Compose (recomendado)](#opção-a-docker-compose-recomendado)
-  - [Opção B: Kestrel + Nginx (sem Docker)](#opção-b-kestrel--nginx-sem-docker)
-- [Segurança](#segurança)
-  - [JWT](#jwt)
-  - [BCrypt](#bcrypt)
-  - [Boas práticas para segredos](#boas-práticas-para-segredos)
-- [Banco de Dados](#banco-de-dados)
-  - [Backups e restauração](#backups-e-restauração)
-- [Documentação da API (endpoints principais)](#documentação-da-api-endpoints-principais)
-  - [Autenticação](#autenticação)
-  - [Usuários](#usuários)
-  - [Serviços](#serviços)
-  - [Agendamentos](#agendamentos)
-  - [Portfólio / Imagens](#portfólio--imagens)
-- [Testes](#testes)
-- [Observabilidade e Saúde](#observabilidade-e-saúde)
-- [Resolução de problemas comuns](#resolução-de-problemas-comuns)
-- [Contribuição](#contribuição)
-- [Licença](#licença)
-- [Contato / Suporte](#contato--suporte)
+
 
 ---
 
-## Visão Geral
+Sumário
+- Sobre
+- Tecnologias
+- Estrutura do repositório
+- Diagramas simples (fluxos)
+- Configuração (appsettings / variáveis)
+- Como executar (local / Docker)
+- Migrations (EF Core)
+- Endpoints principais
+- Segurança
+- Troubleshooting rápido
+- Contribuição
+- Licença
 
-Este projeto é uma API backend para gerenciar uma barbearia/portfólio com:
-- Autenticação e autorização com JWT (access + refresh tokens).
-- Senhas armazenadas com BCrypt.
-- Persistência em PostgreSQL usando Entity Framework Core.
-- Configuração para rodar em VPS (Docker ou Kestrel + Nginx).
-- Documentação via Swagger (Swashbuckle).
-- Logs estruturados (ex.: Serilog) e endpoints de health-check.
+---
 
-Objetivo: fornecer um backend robusto, seguro e fácil de implantar, servindo tanto para um portfólio pessoal quanto para um MVP de produto.
+Sobre
+Este repositório contém a API que alimenta o portfólio da barbearia. A intenção foi fazer algo simples, seguro e fácil de publicar em um VPS com Docker. O README aqui foi pensado para facilitar quem está começando (eu mesmo usei isso quando comecei) — objetivo: claro, direto e útil.
 
-## Principais Tecnologias
-
+Tecnologias
 - .NET 9 (C#)
-- Entity Framework Core (EF Core)
+- ASP.NET Core Web API
+- Entity Framework Core (migrations)
 - PostgreSQL
-- JWT (System.IdentityModel ou bibliotecas compatíveis)
-- BCrypt (via BCrypt.Net-Next ou similar)
-- Docker & Docker Compose
-- Nginx (reverse proxy) + Certbot (Let's Encrypt) para HTTPS
-- Swagger / OpenAPI
-- Serilog (opcional)
-- GitHub Actions (opcional para CI/CD)
+- BCrypt (hash de senhas)
+- JWT (tokens)
+- Docker + docker-compose
 
-## Funcionalidades
+Estrutura do repositório (resumida)
+- .dockerignore
+- .github/
+- .gitignore
+- BarbeariaPortifolio.API.csproj
+- BarbeariaPortifolio.API.sln
+- Dockerfile
+- docker-compose.yml
+- Program.cs
+- appsettings.json
+- Migrations/
+- Modules/ (features)
+- Shared/ (DTOs, helpers)
+- Templates/
+- Properties/
 
-- Registro de usuário (hash de senha com BCrypt).
-- Login com emissão de JWT (access token curto + refresh token).
-- Refresh de token e revogação.
-- CRUD de perfis/usuários (roles: User, Admin).
-- CRUD de serviços (ex.: cortes, barba).
-- Agendamento de serviços (criar, atualizar, cancelar).
-- Upload/gerenciamento de imagens do portfólio (armazenamento local ou S3).
-- Filtros, paginação e ordenação em endpoints listáveis.
-- Migrations automatizadas com EF Core.
-- Swagger UI disponível em /swagger (em ambiente de desenvolvimento).
+Se algo estiver em outro lugar, ajuste conforme seu fluxo — aqui eu listei o que é mais comum no projeto.
 
-## Arquitetura e Diagramas (Mermaid)
+---
 
-Abaixo estão diagramas Mermaid incorporados para explicar a arquitetura, implantação e fluxos principais. Após cada diagrama há uma breve descrição (fallback textual) para acessibilidade ou renderizadores que não suportam Mermaid.
+Diagramas simples e explicativos
+Obs: removi os fluxogramas complexos e usei diagramas ASCII bem simples para facilitar leitura e garantir que tudo renderize sem erros.
 
-### Visão Geral da Arquitetura (flowchart)
+1) Fluxo de autenticação (resumo)
+Cliente -> API (POST /api/auth/login)
+  -> API busca usuário no repositório (UserRepository / EF Core)
+    -> Banco Postgres retorna usuário com PasswordHash
+  -> API verifica senha com BCrypt
+    -> Se ok: API gera JWT e retorna token ao cliente
+    -> Se não: retorna 401 Unauthorized
 
-```mermaid
-flowchart TD
-  Browser -->|HTTPS| CDN[CDN / Edge Cache]
-  CDN --> LB[Load Balancer / Reverse Proxy]
-  LB --> API["API Gateway / Nginx -> Kestrel"]
-  API --> Auth[Auth Service]
-  API --> Users[User Service]
-  API --> Services[Services Service]
-  API --> Schedules[Scheduling Service]
-  Services --> Storage[(Object Storage / S3)]
-  Schedules --> MQ[(Message Broker)]
-  MQ --> Worker[Background Worker]
-  Users --> DB[(Postgres)]
-  Auth --> Cache[(Redis)]
-  Worker --> Storage
-```
+Representação simples:
+[Client] --POST /auth/login--> [API] --query user--> [Postgres]
+[API] --BCrypt verify--> [PasswordHash]
+[API] --generate JWT--> [Client] (token)
 
-Descrição:
-- Browser usa HTTPS para falar com a CDN/Load Balancer.
-- Nginx atua como reverse proxy encaminhando para Kestrel (API).
-- API roteia para módulos/serviços internos (Auth, Users, Services, Schedules).
-- Banco relacional (Postgres) guarda entidades principais; Redis para caches/tokens.
-- Processos assíncronos são realizados por Workers via Message Broker; uploads em Object Storage.
+2) Pipeline de requisição (o que acontece em cada request)
+[Client] -> [Ingress/LoadBalancer?] -> [Middleware: Logging] -> [Middleware: CORS] -> [Auth JWT] -> [Authorization] -> [Controller] -> [Service] -> [Repository/EF] -> [Postgres] -> [Response]
 
-### Implantação / Infra (graph LR)
+3) Deploy básico (passos)
+1. dotnet publish -c Release
+2. docker build (imagem multi-stage)
+3. docker run / docker-compose up -d na VPS
+4. container da API sobe + container do Postgres (ou DB externo)
+5. aplicar migrations (automático na inicialização ou manual)
 
-```mermaid
-graph LR
-  subgraph Edge
-    CDN[CDN]
-  end
+4) Modelo de dados (exemplo simplificado)
+Usuários:
+- Id (int, PK)
+- Name (string)
+- Email (string, único)
+- PasswordHash (string)
+- Role (string)
+- CreatedAt, UpdatedAt
 
-  subgraph VPC
-    LB[ALB / Nginx LB] --> ASG[Auto Scaling / Instances]
-    ASG --> Kestrel[Kestrel / Container]
-    Kestrel --> RDS[(Postgres)]
-    Kestrel --> Redis[(Redis)]
-    Kestrel --> EFS[(Shared FS)]
-    Kestrel --> S3[(Object Storage)]
-  end
+Serviços / Portfolio:
+- Id (int, PK)
+- Title (string)
+- Description (string)
+- Price (decimal)
+- CreatedBy (FK -> Users.Id)
+- CreatedAt, UpdatedAt
 
-  CDN --> LB
-  RDS -->|backups| Backups[(Backup Storage)]
-  MQ[(Message Broker)] --> Workers[(Worker Pool)]
-  Workers --> S3
-```
+---
 
-Descrição:
-- CDN + Load Balancer na borda, instâncias (ou containers) executam Kestrel.
-- Postgres, Redis e object storage para persistência e arquivos.
-- Broker e Workers para processamento background.
+Configuração (appsettings.json exemplo)
+Substitua valores sensíveis por variáveis de ambiente em produção.
 
-### Fluxo de Autenticação (sequenceDiagram)
-
-```mermaid
-sequenceDiagram
-  participant Browser
-  participant API
-  participant Auth
-  participant DB
-  Browser->>API: POST /auth/login (email, senha)
-  API->>Auth: validarCredenciais(email, senha)
-  Auth->>DB: SELECT user WHERE email = ...
-  DB-->>Auth: user record (password hash)
-  Auth-->>Auth: BCrypt.Verify(password, hash)
-  Auth-->>API: { accessToken, refreshToken }
-  API-->>Browser: 200 OK + tokens
-  Browser->>API: GET /protected (Authorization: Bearer <accessToken>)
-  API->>Auth: verificarToken(accessToken)
-  Auth-->>API: token válido / claims
-```
-
-Descrição:
-- Auth valida credenciais consultando o DB e comparando hash com BCrypt.
-- Auth retorna access + refresh tokens; API valida tokens para chamadas subsequentes.
-
-### Fluxo de Agendamento (sequenceDiagram)
-
-```mermaid
-sequenceDiagram
-  participant Cliente
-  participant API
-  participant Schedules
-  participant DB
-  participant MQ
-  Cliente->>API: POST /agendamentos { serviço, data, clienteId }
-  API->>Schedules: createSchedule(dto)
-  Schedules->>DB: INSERT schedule
-  DB-->>Schedules: schedule creado (id)
-  Schedules->>MQ: publish(ScheduleCreatedEvent)
-  MQ-->>Worker: entrega evento
-  Worker->>Storage: armazenar artefatos (opcional)
-  Worker-->>API: update status/processamento
-  API-->>Cliente: 201 Created
-```
-
-Descrição:
-- Criação do agendamento persiste no DB e publica um evento no broker para processamento assíncrono (notificações, reminders, geração de arquivos etc).
-
-Observação sobre renderização:
-- Se o visualizador não suportar Mermaid, o bloco acima aparecerá como código-fonte Mermaid. Forneci descrições textuais para cada diagrama.
-
-## Organização do Código
-
-Estrutura sugerida:
-- src/
-  - Api/ (projeto WebAPI)
-  - Domain/ (entidades, enums, regras)
-  - Application/ (DTOs, serviços de aplicação, interfaces)
-  - Infrastructure/ (EF Core, Migrations, repositórios, implementações de I/O)
-  - Shared/ (utilitários, constantes)
-  - Tests/ (testes unitários e integração)
-- docker/
-  - docker-compose.yml
-  - Dockerfile
-- scripts/
-  - deploy, backup, restore helpers
-
-Padrões:
-- DTOs para entrada/saída.
-- Repositório + Unit of Work (opcional).
-- Services (camada de aplicação) para lógica de orquestração.
-- AutoMapper para mapping entre entidades e DTOs.
-- Middlewares para autenticação/autorização e tratamento global de exceções.
-
-## Requisitos
-
-Local:
-- .NET 9 SDK (dotnet 9.x)
-- dotnet-ef (CLI) — opcional para gerar e aplicar migrations
-- PostgreSQL (local ou container)
-- Docker & Docker Compose (opcional)
-- Git
-
-VPS:
-- Docker + Docker Compose OR .NET 9 Runtime + Nginx
-- Certbot (para HTTPS) caso use Nginx
-
-## Instalação e Execução Local
-
-### 1. Clonar o repositório
-
-```bash
-git clone https://github.com/alonesch/api-barbearia-portifolio.git
-cd api-barbearia-portifolio
-```
-
-### 2. Variáveis de ambiente / appsettings
-
-Crie um arquivo `.env` (ou use `appsettings.Development.json`/user-secrets). Exemplo de variáveis:
-
-```env
-ASPNETCORE_ENVIRONMENT=Development
-ASPNETCORE_URLS=http://*:5000
-
-# Database (Postgres)
-ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=barbearia_db;Username=barber;Password=supersecret
-
-# JWT
-JWT__Key=troca-por-uma-chave-muito-secreta-e-longa
-JWT__Issuer=ApiBarbearia
-JWT__Audience=ApiBarbeariaClient
-JWT__ExpiresMinutes=15
-JWT__RefreshTokenExpiresDays=7
-
-# BCrypt
-BCRYPT__WorkFactor=12
-
-# Storage (opcional)
-STORAGE__Provider=local
-STORAGE__Local__Path=./uploads
-
-# Outros
-LOG__Level=Information
-```
-
-> Atenção: Nunca versionar segredos em repositórios públicos. Use secrets do GitHub Actions ou variáveis de ambiente no servidor.
-
-### 3. Migrations e banco de dados
-
-Instale o CLI do EF caso necessário:
-
-```bash
-dotnet tool install --global dotnet-ef
-```
-
-Criar migrations (se alterações locais):
-
-```bash
-dotnet ef migrations add InitialCreate --project src/Infrastructure --startup-project src/Api
-```
-
-Aplicar migrations:
-
-```bash
-dotnet ef database update --project src/Infrastructure --startup-project src/Api
-```
-
-Ou inicialize o banco via container (ver Docker Compose abaixo).
-
-### 4. Executar localmente
-
-```bash
-cd src/Api
-dotnet restore
-dotnet build
-dotnet run --urls "http://localhost:5000"
-```
-
-Acesse:
-- API: http://localhost:5000
-- Swagger (Development): http://localhost:5000/swagger
-
-## Docker / Docker Compose (Desenvolvimento e Produção)
-
-Exemplo simplificado `docker/docker-compose.yml`:
-
-```yaml
-version: "3.8"
-services:
-  db:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_USER: barber
-      POSTGRES_PASSWORD: supersecret
-      POSTGRES_DB: barbearia_db
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:7
-    restart: always
-    ports:
-      - "6379:6379"
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=barbearia_db;Username=barber;Password=supersecret
-      - JWT__Key=${JWT__Key}
-    depends_on:
-      - db
-      - redis
-    ports:
-      - "5000:80"
-    volumes:
-      - ./uploads:/app/uploads
-
-volumes:
-  db-data:
-```
-
-Notas:
-- Em produção, utilize secrets/variáveis de ambiente seguras (Docker secrets, Vault, etc).
-- Ajuste recursos (replicas, healthchecks, limites) conforme necessário.
-
-## Deploy em VPS (guia recomendado)
-
-### Opção A: Docker Compose (recomendado)
-- Instale Docker + Docker Compose na VPS.
-- Transfira os arquivos (`docker-compose.yml`, `Dockerfile`, `.env`) para o servidor.
-- Configure proxy reverso (Nginx) à frente do serviço ou exponha porta 80/443 no container.
-- Use Certbot para TLS com Nginx ou configure um container com Traefik.
-- Exemplo de comandos:
-
-```bash
-docker compose pull
-docker compose up -d --build
-docker compose logs -f api
-```
-
-### Opção B: Kestrel + Nginx (sem Docker)
-- Publicar a aplicação: `dotnet publish -c Release -o /var/www/api`
-- Configurar systemd unit para o processo `dotnet`.
-- Configurar Nginx como reverse proxy (proxy_pass -> http://localhost:5000).
-- Usar Certbot para obter TLS.
-
-Exemplo de bloco Nginx (simplificado):
-
-```nginx
-server {
-    listen 80;
-    server_name api.seudominio.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=barbearia;Username=postgres;Password=secret"
+  },
+  "Jwt": {
+    "Key": "COLOQUE_AQUI_UMA_CHAVE_SECRETA_MUITO_LONGA",
+    "Issuer": "barbearia.api",
+    "Audience": "barbearia.client",
+    "ExpiresMinutes": 60
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information"
     }
+  },
+  "AllowedHosts": "*"
 }
 ```
 
-## Segurança
+Variáveis de ambiente úteis para Docker/VPS
+- POSTGRES_USER
+- POSTGRES_PASSWORD
+- POSTGRES_DB
+- ASPNETCORE_ENVIRONMENT
+- ConnectionStrings__DefaultConnection
+- Jwt__Key, Jwt__Issuer, Jwt__Audience, Jwt__ExpiresMinutes
 
-### JWT
-- Use uma chave (JWT__Key) forte e longa.
-- Access tokens curtos (ex.: 15 minutos) e refresh tokens mais longos.
-- Salve refresh tokens com mecanismos de revogação (DB) e rotacione quando usado.
+Dica: use env_file ou Docker secrets em produção; não comite secrets no repo.
 
-### BCrypt
-- WorkFactor configurável (ex.: 12) para balancear segurança/performance.
-- Nunca armazenar senhas em texto plano.
+---
 
-### Boas práticas para segredos
-- Use variáveis de ambiente, Docker secrets, HashiCorp Vault ou GitHub Secrets.
-- Não deixar chaves no repositório.
-- Rotacione segredos periodicamente.
+Como executar localmente (modo simples)
+1. Clone
+   - git clone https://github.com/alonesch/api-barbearia-portifolio.git
+2. Ajuste appsettings.json ou configure variáveis de ambiente
+3. Restore e run
+   - dotnet restore
+   - dotnet ef database update
+   - dotnet run
+4. A API costuma rodar em https://localhost:5001 ou http://localhost:5000
 
-## Banco de Dados
+Se preferir rodar com o Postgres via Docker local:
+- docker run --name pg -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=barbearia -p 5432:5432 -d postgres:15
 
-- Modelagem via EF Core migrations.
-- Indíces para consultas de agendamentos e buscas por usuário/serviço.
-- Use conexões seguras (SSL) entre API e Postgres em produção.
+---
 
-### Backups e restauração
-- Agende dumps regulares (pg_dump) ou snapshots do volume.
-- Teste restaurações periodicamente.
+Como executar com Docker / docker-compose
+1. Build e subir:
+   - docker-compose up --build -d
+2. Logs:
+   - docker-compose logs -f app
+3. Parar:
+   - docker-compose down
 
-Exemplo simples de backup:
+Se as migrations não rodarem automaticamente, abra o shell do container e rode:
+- docker-compose exec app dotnet ef database update
 
-```bash
-PGPASSWORD=supersecret pg_dump -h localhost -U barber -Fc barbearia_db > backup-$(date +%F).dump
-```
+---
 
-Restauração:
+Migrations (EF Core)
+Comandos úteis (no diretório do .csproj):
+- dotnet ef migrations add NomeDaMigration
+- dotnet ef database update
+- dotnet ef migrations remove
 
-```bash
-pg_restore -h localhost -U barber -d barbearia_db --clean backup-2025-12-30.dump
-```
-A documentação completa está disponível via Swagger (quando habilitado). Abaixo alguns endpoints principais e exemplos.
+Se estiver usando múltiplos projetos, verifique os parâmetros --project e --startup-project.
 
+---
 
-### Autenticação
-- POST /api/v2/auth/register
-  - Body: { nomeUsuario, nomeCompleto, email, senha }
-- POST /api/v2/auth/login
-  - Body: { emailOuUsername, senha }
-  - Retorna: { token, refreshToken, usuario }
-- POST /api/v2/auth/refresh
-  - Body: { refreshToken }
-- POST /api/v2/auth/logout
-  - Revoga refresh token
-- GET /api/v2/auth/confirmar-email?token=...
-- POST /api/v2/auth/reenviar-confirmacao
+Endpoints principais (modelo)
+- POST /api/auth/register — registrar usuário
+- POST /api/auth/login — autenticar e receber JWT
+- GET /api/users/me — perfil do usuário (Bearer token)
+- GET /api/services — listar serviços
+- POST /api/services — criar serviço (autorizado)
+- PUT /api/services/{id} — atualizar serviço (autorizado)
+- DELETE /api/services/{id} — deletar serviço (autorizado)
 
-### Usuários
-- GET /api/v2/usuarios/me
-- GET /api/v2/usuarios
-- GET /api/v2/usuarios/{id}
-- PUT /api/v2/usuarios/{id}
-- DELETE /api/v2/usuarios/{id}
+Exemplo de login com curl:
+curl -X POST http://localhost:5000/api/auth/login -H "Content-Type: application/json" -d '{"email":"teste@ex.com","password":"senha"}'
 
-### Serviços
-- GET /api/v2/servicos
-- GET /api/v2/servicos/{id}
-- POST /api/v2/servicos
-- PUT /api/v2/servicos/{id}
-- DELETE /api/v2/servicos/{id}
+Resposta esperada:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 3600,
+  "user": { "id": 1, "email": "teste@ex.com", "name": "Fulano" }
+}
 
-### Agendamentos
-- GET /api/v2/agendamentos
-- GET /api/v2/agendamentos/{id}
-- POST /api/v2/agendamentos
-- PATCH /api/v2/agendamentos/status/{id}
-  - Body: { status }
+---
 
-### Portfólio / Imagens
-- POST /api/v2/usuarios/foto-perfil
-- DELETE /api/v2/usuarios/foto-perfil
+Segurança (práticas que apliquei / recomendadas)
+- Senhas: armazenadas como hash BCrypt (nunca em texto).
+- JWT: chave secreta longa; validar assinatura e expiração no middleware.
+- HTTPS: obrigatório em produção.
+- CORS: configurar origens permitidas.
+- Rate limiting / proteção de brute force: considerar se houver muitas tentativas de login.
+- Secrets: usar secret manager (Vault, AWS Secrets Manager) em ambientes reais.
 
-## Testes
+---
 
-- Estrutura para testes unitários e de integração em `src/Tests`.
-- Recomenda-se usar xUnit + FluentAssertions + Moq.
-- Para testes de integração, use um banco Postgres containerizado (testcontainers ou docker compose) e aplicar migrations no setup.
+Troubleshooting rápido
+- Erro de conexão com DB:
+  - Verifique connection string, usuário/senha, se o container do Postgres está rodando e portas.
+- Token JWT inválido:
+  - Veja se a chave configurada no ambiente do container é a mesma que a aplicação usa para gerar tokens.
+- Migrations não aplicam:
+  - Verifique se o projeto correto foi informado ao dotnet ef; verifique logs de startup.
 
-Exemplo (dotnet):
+---
 
-```bash
-cd src/Tests
-dotnet test
-```
+Contribuição
+- Abra uma issue para bugs ou sugestões.
+- Para PRs: mantenha o estilo C#, escreva commits claros e, se possível, inclua testes.
+- Se quiser, posso preparar um PR com documentação ou pequenas correções — só dizer.
 
-## Observabilidade e Saúde
+Tom de quem escreveu: júnior mas responsável — se você encontrar algo estranho aqui, me fala que eu corrijo e tento deixar mais claro.
 
-- Expor endpoints de health-check: `/health` (readiness, liveness).
-- Logs estruturados (Serilog) com sink para arquivos/Elastic/Kibana opcional.
-- Métricas (Prometheus) e trace (OpenTelemetry) podem ser adicionados conforme necessidade.
+---
 
-## Resolução de problemas comuns
+Licença
+Se quiser que o projeto fique aberto, sugiro MIT. Se preferir outra licença, me diga e eu ajusto.
 
-- Migration falhando: checar string de conexão e permissões do DB.
-- Erros de upload: validar permissões de diretório uploads/ ou credenciais S3.
-- Token inválido: verificar relógio do servidor (NTP) e chave JWT.
-- Problemas de domínio/HTTPS: conferir configuração do Nginx/Certbot e portas no firewall.
+---
 
-## Contribuição
-
-Contribuições são bem-vindas:
-- Abra issues para bugs e features.
-- Use PRs com descrições claras e referência a issues.
-- Mantenha padrões de código, testes e documentação atualizados.
-
-## Licença
-
-Projeto licenciado sob MIT. Veja o arquivo LICENSE para mais detalhes.
-
-## Contato / Suporte
-
-Para dúvidas ou suporte, abra uma issue no repositório ou contate o mantenedor: alonesch.
-
+Observações finais
+- Removi fluxogramas complexos e deixei diagramas mais simples (ASCII) para evitar problemas de render no GitHub.
+- Posso transformar esses diagramas em imagens ou em um arquivo docs/ se preferir visual mais gráfico.
+- Quer que eu atualize o README direto no repositório (criar PR)? Posso fazer isso pra você.
