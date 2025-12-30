@@ -1,35 +1,30 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:16
     container_name: barbercloud-postgres-dev
     restart: unless-stopped
 
-   
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    dns_search: []
-    dns_opt:
-      - use-vc   
-
     env_file:
       - .env
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     ports:
-      - "5432:5432" # DEV
+      - "5433:5432" # DEV exposto
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
 
     networks:
       - barbercloud_net
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_DEV} -d ${POSTGRES_DB_DEV}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,34 +37,28 @@ services:
     container_name: barbercloud-api-dev
     restart: unless-stopped
 
-    
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    dns_search: []
-    dns_opt:
-      - use-vc   
-
     depends_on:
       db:
         condition: service_healthy
 
     env_file:
       - .env
+
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      POSTGRES_CONNECTION: ${POSTGRES_CONNECTION}
+      ASPNETCORE_ENVIRONMENT: Development
+
+      POSTGRES_CONNECTION_DEV: ${POSTGRES_CONNECTION_DEV}
       JWT__KEY: ${JWT__KEY}
 
-      EMAIL_HOST: ${EMAIL_HOST}
-      EMAIL_PORT: ${EMAIL_PORT}
-      EMAIL_USER: ${EMAIL_USER}
-      EMAIL_PASS: ${EMAIL_PASS}
-      EMAIL_FROM: ${EMAIL_FROM}
-      EMAIL_NAME: ${EMAIL_NAME}
+      EMAIL_HOST_DEV: ${EMAIL_HOST_DEV}
+      EMAIL_PORT_DEV: ${EMAIL_PORT_DEV}
+      EMAIL_USER_DEV: ${EMAIL_USER_DEV}
+      EMAIL_PASS_DEV: ${EMAIL_PASS_DEV}
+      EMAIL_FROM_DEV: ${EMAIL_FROM_DEV}
+      EMAIL_NAME_DEV: ${EMAIL_NAME_DEV}
 
-      FRONTEND_URL: ${FRONTEND_URL}
-      API_URL: ${API_URL}
+      FRONTEND_URL_DEV: ${FRONTEND_URL_DEV}
+      API_URL_DEV: ${API_URL_DEV}
 
       ASPNETCORE_URLS: http://0.0.0.0:8080
 
@@ -81,9 +70,10 @@ services:
 
 
 volumes:
-  postgres_data:
+  postgres_dev_data:
 
 
 networks:
   barbercloud_net:
+    name: barbercloud-dev_barbercloud_net
     driver: bridge
