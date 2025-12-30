@@ -10,9 +10,9 @@ services:
       - .env
 
     environment:
-      POSTGRES_DB: ${POSTGRES_DB_DEV}
-      POSTGRES_USER: ${POSTGRES_USER_DEV}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_DEV}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     ports:
       - "5433:5432" # DEV exposto
