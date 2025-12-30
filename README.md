@@ -515,10 +515,3 @@ Projeto licenciado sob MIT. Veja o arquivo LICENSE para mais detalhes.
 
 Para dúvidas ou suporte, abra uma issue no repositório ou contate o mantenedor: alonesch.
 
----
-
-Se quiser que eu:
-- faça o commit desse README no repositório (me informe owner/repo e branch),
-- gere SVGs dos diagramas e adicione em /docs/assets/,
-- ou ajuste os diagramas para uma arquitetura específica (por exemplo: monolito vs microserviços, uso de S3 vs local),
-posso executar esses passos — diga qual você prefere.
