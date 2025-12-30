@@ -190,8 +190,8 @@ public class AuthServico : IAuthServico
     // ======================================================
     public async Task ReenviarConfirmacaoEmailAsync(ReenviarConfirmacaoEmailDto dto)
     {
-        var email = dto.Email.Trim().ToLowerInvariant();
-        var usuario = await _usuarios.BuscarPorEmail(email);
+        var login = dto.Login.Trim().ToLowerInvariant();
+        var usuario = await _usuarios.BuscarPorEmail(login);
 
         if (usuario == null || usuario.EmailConfirmado)
             return;
@@ -215,7 +215,7 @@ public class AuthServico : IAuthServico
 
         await _emailTokens.CriarAsync(token);
 
-        // ✅ URL CORRETA
+        
         var link = $"{_config["API_URL"]}/api/v2/auth/confirmar-email?token={token.Token}";
 
         await _emailServico.EnviarConfirmacaoEmailAsync(usuario.Email, usuario.NomeCompleto, link);

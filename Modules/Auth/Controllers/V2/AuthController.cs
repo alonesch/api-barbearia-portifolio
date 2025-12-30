@@ -159,7 +159,10 @@ public class AuthController : ControllerBase
         return Ok(new
         {
             mensagem = "Se existir uma conta com este e-mail, um novo link de confirmação foi enviado."
+
         });
+
+        
     }
 
 
