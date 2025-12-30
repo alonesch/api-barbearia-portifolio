@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: barbercloud-postgres-prod
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+
+    networks:
+      - barbercloud_net
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: barbercloud-api-prod
+    restart: unless-stopped
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+      # ===== DATABASE =====
+      POSTGRES_CONNECTION: ${POSTGRES_CONNECTION}
+
+      # ===== JWT =====
+      JWT__KEY: ${JWT__KEY}
+
+      # ===== EMAIL (BREVO) =====
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_NAME: ${EMAIL_NAME}
+
+      # ===== URLS =====
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_URL: ${API_URL}
+
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+
+    ports:
+      - "8081:8080" # nginx aponta para 8081
+
+    networks:
+      - barbercloud_net
+
+
+volumes:
+  postgres_prod_data:
+
+
+networks:
+  barbercloud_net:
+    name: barbercloud-prod_barbercloud_net
+    driver: bridge
+
