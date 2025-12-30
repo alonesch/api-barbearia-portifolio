@@ -78,6 +78,6 @@ volumes:
 
 networks:
   barbercloud_net:
+    external: true
     name: barbercloud-prod_barbercloud_net
-    driver: bridge
 
