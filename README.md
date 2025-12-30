@@ -176,7 +176,7 @@ sequenceDiagram
   participant Schedules
   participant DB
   participant MQ
-  Cliente->>API: POST /schedules { serviço, data, clienteId }
+  Cliente->>API: POST /agendamentos { serviço, data, clienteId }
   API->>Schedules: createSchedule(dto)
   Schedules->>DB: INSERT schedule
   DB-->>Schedules: schedule creado (id)
@@ -429,50 +429,46 @@ Restauração:
 ```bash
 pg_restore -h localhost -U barber -d barbearia_db --clean backup-2025-12-30.dump
 ```
-
-## Documentação da API (endpoints principais)
-
 A documentação completa está disponível via Swagger (quando habilitado). Abaixo alguns endpoints principais e exemplos.
 
+
 ### Autenticação
-- POST /api/auth/register
-  - Body: { name, email, password }
-  - Retorna: usuário + tokens (optional)
-- POST /api/auth/login
-  - Body: { email, password }
-  - Retorna: { accessToken, refreshToken }
-- POST /api/auth/refresh
+- POST /api/v2/auth/register
+  - Body: { nomeUsuario, nomeCompleto, email, senha }
+- POST /api/v2/auth/login
+  - Body: { emailOuUsername, senha }
+  - Retorna: { token, refreshToken, usuario }
+- POST /api/v2/auth/refresh
   - Body: { refreshToken }
-- POST /api/auth/logout
+- POST /api/v2/auth/logout
   - Revoga refresh token
+- GET /api/v2/auth/confirmar-email?token=...
+- POST /api/v2/auth/reenviar-confirmacao
 
 ### Usuários
-- GET /api/users
-- GET /api/users/{id}
-- POST /api/users (Admin)
-- PUT /api/users/{id}
-- DELETE /api/users/{id}
+- GET /api/v2/usuarios/me
+- GET /api/v2/usuarios
+- GET /api/v2/usuarios/{id}
+- PUT /api/v2/usuarios/{id}
+- DELETE /api/v2/usuarios/{id}
 
 ### Serviços
-- GET /api/services
-- GET /api/services/{id}
-- POST /api/services (Admin)
-- PUT /api/services/{id}
-- DELETE /api/services/{id}
+- GET /api/v2/servicos
+- GET /api/v2/servicos/{id}
+- POST /api/v2/servicos
+- PUT /api/v2/servicos/{id}
+- DELETE /api/v2/servicos/{id}
 
 ### Agendamentos
-- GET /api/schedules
-- GET /api/schedules/{id}
-- POST /api/schedules
-- PUT /api/schedules/{id}
-- DELETE /api/schedules/{id}
-- Endpoints com filtros (data, profissional, status), paginação e ordenação.
+- GET /api/v2/agendamentos
+- GET /api/v2/agendamentos/{id}
+- POST /api/v2/agendamentos
+- PATCH /api/v2/agendamentos/status/{id}
+  - Body: { status }
 
 ### Portfólio / Imagens
-- POST /api/portfolio (upload de imagem)
-- GET /api/portfolio
-- DELETE /api/portfolio/{id}
-- Armazenamento local (uploads/) ou provider S3 (configurável em appsettings).
+- POST /api/v2/usuarios/foto-perfil
+- DELETE /api/v2/usuarios/foto-perfil
 
 ## Testes
 
