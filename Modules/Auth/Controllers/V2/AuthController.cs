@@ -1,12 +1,13 @@
-﻿using BarbeariaPortifolio.API.Shared.Exceptions;
+﻿using BarbeariaPortifolio.API.Auth.DTOs;
 using BarbeariaPortifolio.API.Modules.Auth.DTOs;
-using BarbeariaPortifolio.API.Modules.Clientes.DTOs;
 using BarbeariaPortifolio.API.Modules.Auth.Services.Interfaces;
+using BarbeariaPortifolio.API.Modules.Clientes.DTOs;
+using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
+using BarbeariaPortifolio.API.Shared.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
-using BarbeariaPortifolio.API.Modules.Usuarios.DTOs;
 
 
 
@@ -25,11 +26,6 @@ public class AuthController : ControllerBase
         _config = config;
     }
 
-    public class LoginRequest
-    {
-        public string Usuario { get; set; } = string.Empty;
-        public string Senha { get; set; } = string.Empty;
-    }
 
 
     [HttpGet("confirmar-email")]
@@ -119,14 +115,14 @@ public class AuthController : ControllerBase
     [EnableRateLimiting("LoginPolicy")]
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginDTO request)
+
     {
-        if (request == null ||
-            string.IsNullOrWhiteSpace(request.Usuario) ||
-            string.IsNullOrWhiteSpace(request.Senha))
+        if (!ModelState.IsValid)
         {
-            throw new AppException("Credenciais inválidas.", 400);
+            return BadRequest(ModelState);
         }
+
 
         var (accessToken, refreshToken, usuario) =
             await _auth.LoginAsync(request.Usuario, request.Senha);
