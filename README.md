@@ -222,16 +222,3 @@ Contribuição
 - Para PRs: mantenha o estilo C#, escreva commits claros e, se possível, inclua testes.
 - Se quiser, posso preparar um PR com documentação ou pequenas correções — só dizer.
 
-Tom de quem escreveu: júnior mas responsável — se você encontrar algo estranho aqui, me fala que eu corrijo e tento deixar mais claro.
-
----
-
-Licença
-Se quiser que o projeto fique aberto, sugiro MIT. Se preferir outra licença, me diga e eu ajusto.
-
----
-
-Observações finais
-- Removi fluxogramas complexos e deixei diagramas mais simples (ASCII) para evitar problemas de render no GitHub.
-- Posso transformar esses diagramas em imagens ou em um arquivo docs/ se preferir visual mais gráfico.
-- Quer que eu atualize o README direto no repositório (criar PR)? Posso fazer isso pra você.
